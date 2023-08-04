@@ -21,3 +21,6 @@ grass 1
 
 
 # Swords-Line
+
+
+![Alt text](graphics/Readme/preview_v1.1.png)
