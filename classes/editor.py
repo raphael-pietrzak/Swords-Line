@@ -1,7 +1,11 @@
 import pygame, sys
 from classes.settings import *
-from classes.sprites import Animated, Gobelin, Knight
+from classes.player.gobelin import Gobelin
+from classes.player.knight import Knight
+from classes.player.animated import Animated
+
 from random import randint
+from pygame import Vector2 as vector
 
 class Editor:
     def __init__(self):
@@ -9,19 +13,20 @@ class Editor:
         self.imports()
 
         # decoration
-        self.sprites_group = pygame.sprite.Group()
+        self.sprites_group = CameraGroup()
         self.player_group = pygame.sprite.Group()
-        Animated(self.animations[2]['frames'], (400, 100), self.sprites_group)
-        Animated(self.animations[5]['frames'], (1000, 100), self.sprites_group)
+        
+        Animated(self.animations[2]['frames'], (600, 100), self.sprites_group)
+        Animated(self.animations[5]['frames'], (1200, 100), self.sprites_group)
+        Animated(self.animations[2]['frames'], (800, 100), self.sprites_group)
+        Animated(self.animations[5]['frames'], (800, 100), self.sprites_group)
+        Animated(self.animations[2]['frames'], (200, 100), self.sprites_group)
+        Animated(self.animations[5]['frames'], (300, 100), self.sprites_group)
 
         # player
         self.player1 = Gobelin(self.animations[3]['frames'], (800, 100), [self.sprites_group, self.player_group])        
         self.player2 = Knight(self.animations[4]['frames'], (600, 200), [self.sprites_group, self.player_group])
 
-        Gobelin(self.animations[3]['frames'], (200, 100), [self.sprites_group, self.player_group])
-        Knight(self.animations[4]['frames'], (300, 200), [self.sprites_group, self.player_group])
-        Gobelin(self.animations[3]['frames'], (400, 100), [self.sprites_group, self.player_group])
-        Knight(self.animations[4]['frames'], (500, 200), [self.sprites_group, self.player_group])
 
     def imports(self):
         self.animations = {}
@@ -72,14 +77,43 @@ class Editor:
             # self.player1.event_loop(event)
             # self.player2.event_loop(event)
 
-                    
+    def get_barycenter(self, sprite1, sprite2):
+        # Get the positions of the sprites
+        x1, y1 = sprite1.rect.center
+        x2, y2 = sprite2.rect.center
+
+        # If the sprites have weights, you can include them in the calculation
+        weight1 = 1  # Replace with the actual weight of sprite1
+        weight2 = 1  # Replace with the actual weight of sprite2
+
+        # Calculate the weighted sum of x and y coordinates
+        weighted_sum_x = (x1 * weight1) + (x2 * weight2)
+        weighted_sum_y = (y1 * weight1) + (y2 * weight2)
+
+        # Calculate the total weight
+        total_weight = weight1 + weight2
+
+        # Calculate the barycenter
+        barycenter_x = weighted_sum_x / total_weight
+        barycenter_y = weighted_sum_y / total_weight
+
+        return vector(barycenter_x, barycenter_y)
+
+
+
+
+
+           
             
 
     def update(self, dt):
         self.display_surface.fill('beige')
         for sprite in self.sprites_group:
             sprite.update(dt)
-        self.sprites_group.draw(self.display_surface)
+        barycentre = self.get_barycenter(self.player1, self.player2)
+        self.sprites_group.custom_draw(barycentre)
+
+        # self.sprites_group.draw(self.display_surface)
         # for sprite in self.player_group:
         #     pygame.draw.rect(self.display_surface, 'yellow', sprite.hitbox)
         self.event_loop()
@@ -89,6 +123,16 @@ class Editor:
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
+        self.offset = vector(0, 0)
+        self.display_surface = pygame.display.get_surface()
     
-    def custom_draw(self):
-        pass
+    def custom_draw(self, barycentre):
+        self.offset.x = WINDOW_WIDTH // 2 - barycentre.x
+        self.offset.y = WINDOW_HEIGHT // 2 - barycentre.y
+
+        for sprite in self.sprites():
+            sprite.pos += self.offset
+            self.display_surface.blit(sprite.image, sprite.rect)
+
+
+        
