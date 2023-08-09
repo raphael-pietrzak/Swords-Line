@@ -1,6 +1,6 @@
 import pygame
 from classes.settings import *
-from classes.sprites import HealthBar
+from classes.player.healthbar import HealthBar
 from classes.player.player import Player
 
 

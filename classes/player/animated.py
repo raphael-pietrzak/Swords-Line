@@ -1,7 +1,6 @@
 import pygame
 from classes.settings import *
 from pygame import Vector2 as vector
-from classes.timer import Cooldown
 
 
 class Animated(pygame.sprite.Sprite):

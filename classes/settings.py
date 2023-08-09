@@ -22,3 +22,10 @@ RED_PLAYER = '#E01515'
 RED_CONTOUR = '#950000'
 BLUE_PLAYER = '#5ABEFF'
 BLUE_CONTOUR = '#0047A4'
+
+
+# Configuration du client
+SERVER_IP = '192.168.1.90'  # Adresse IP privée Mac Mini
+SERVER_PORT = 12345     # Port d'écoute du serveur
+# MacBook Pro IP = '192.168.1.83' 
+# Mac Mini IP = '192.168.1.90'

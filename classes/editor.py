@@ -15,6 +15,8 @@ class Editor:
         # decoration
         self.sprites_group = CameraGroup()
         self.player_group = pygame.sprite.Group()
+        self.player1_group = pygame.sprite.Group()
+        self.player2_group = pygame.sprite.Group()
         
         Animated(self.animations[2]['frames'], (600, 100), self.sprites_group)
         Animated(self.animations[5]['frames'], (1200, 100), self.sprites_group)
@@ -24,8 +26,19 @@ class Editor:
         Animated(self.animations[5]['frames'], (300, 100), self.sprites_group)
 
         # player
-        self.player1 = Gobelin(self.animations[3]['frames'], (800, 100), [self.sprites_group, self.player_group])        
-        self.player2 = Knight(self.animations[4]['frames'], (600, 200), [self.sprites_group, self.player_group])
+        Gobelin(self.animations[3]['frames'], (800, 100), [self.sprites_group, self.player_group, self.player1_group])        
+        Knight(self.animations[4]['frames'], (600, 200), [self.sprites_group, self.player_group, self.player2_group])
+
+        Gobelin(self.animations[3]['frames'], (800, 100), [self.sprites_group, self.player_group, self.player1_group])
+        Gobelin(self.animations[3]['frames'], (600, 200), [self.sprites_group, self.player_group, self.player1_group])
+        Knight(self.animations[4]['frames'], (600, 200), [self.sprites_group, self.player_group, self.player2_group])
+        Knight(self.animations[4]['frames'], (800, 100), [self.sprites_group, self.player_group, self.player2_group])
+
+        self.player1_index = 0 
+        self.player2_index = 0
+
+        self.player1 = self.player1_group.sprites()[self.player1_index]
+        self.player2 = self.player2_group.sprites()[self.player2_index]
 
 
     def imports(self):
@@ -35,6 +48,14 @@ class Editor:
             frames = self.get_frames_from_sprite_sheet(sprite_sheet, value['cols'], value['rows'])
             self.animations[key] = {'frames': frames, 'index': 0, 'length': len(frames)}
 
+
+    def switch_player(self, player):
+        if player == 'player1':
+            self.player1_index = (self.player1_index + 1) % len(self.player1_group)
+            self.player1 = self.player1_group.sprites()[self.player1_index]
+        else:
+            self.player2_index = (self.player2_index + 1) % len(self.player2_group)
+            self.player2 = self.player2_group.sprites()[self.player2_index]
 
     def get_frames_from_sprite_sheet(self, sheet, cols, rows):
         frames = []
@@ -65,7 +86,7 @@ class Editor:
                 sys.exit()
             
             for player in self.player_group:
-                player.event_loop(event)
+                # player.event_loop(event)
                 if player.is_dead:
                     Animated(self.animations[1]['frames'], player.rect.center, self.sprites_group)
                     if player.id == 1:
@@ -74,8 +95,20 @@ class Editor:
                         Knight(player.frames, (randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)), player.group)
                     player.kill()
 
-            # self.player1.event_loop(event)
-            # self.player2.event_loop(event)
+                    
+            self.player1 = self.player1_group.sprites()[self.player1_index]
+            self.player2 = self.player2_group.sprites()[self.player2_index]
+
+            self.player1.event_loop(event)
+            self.player2.event_loop(event)
+
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RSHIFT:
+                    self.switch_player("player1")
+                if event.key == pygame.K_LSHIFT:
+                    self.switch_player("player2")
+
 
     def get_barycenter(self, sprite1, sprite2):
         # Get the positions of the sprites
