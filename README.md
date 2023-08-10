@@ -24,9 +24,7 @@ grass 1
 
 # Swords-Line
 
-
-![Alt text](graphics/Readme/preview_v1.1.png)
-
+![Alt text](Client/graphics/Readme/preview_v1.1.png)
 
 
 Pourquoi faire le Jeu Principal côté serveur ?
