@@ -70,7 +70,7 @@ class Server:
                     self.process_client_data(data, player_id)
 
                 # Envoyer une réponse au client
-                response = self.parse_player_data()
+                response = self.load_player_data()
                 # print(f"Message envoyé : {response}")
                 client_socket.send(response.encode())
                 # time.sleep(1)
@@ -82,10 +82,14 @@ class Server:
                 self.clients_data.pop(player_id)
                 self.players.pop(player_id)
 
-    def parse_player_data(self):
+    def load_player_data(self):
         data_dict = {}
         for key, value in self.players.items():
-            data_dict[key] = [int(value.pos.x), int(value.pos.y)]
+            data_dict[key] = {
+                "position" : [int(value.pos.x), int(value.pos.y)],
+                "status" : value.status,
+                "direction" : value.direction
+           }
 
         return json.dumps(data_dict)
 
