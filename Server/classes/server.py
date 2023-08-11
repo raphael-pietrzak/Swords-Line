@@ -7,6 +7,7 @@ from random import randint
 class Server:
     def __init__(self):
         # main setup
+        self.count = 1
         self.running = False
         self.server_socket = None
         self.accept_clients_thread = None
@@ -15,7 +16,6 @@ class Server:
         # clients
         self.clients = [] 
         self.players = {}
-        self.count = 0
 
 
     # start - stop
@@ -26,6 +26,7 @@ class Server:
         self.server_socket.listen()
         print(f"\nServeur en ligne sur le port {PORT}\n")
 
+        self.count += 1
         self.accept_clients_thread = threading.Thread(target=self.accept_clients)
         self.accept_clients_thread.start()
 
@@ -45,6 +46,7 @@ class Server:
                 client_socket, addr = self.server_socket.accept()
                 print(f"Nouvelle connexion de {addr[0]} : {addr[1]}")
 
+                self.count += 1
                 client_handler_thread = threading.Thread(target=self.handle_client, args=(client_socket, addr))
                 client_handler_thread.start()
 
@@ -117,7 +119,6 @@ class Server:
     
 
     def update(self, dt):
-        self.count += 1
         print("Update : ", self.count)
         # time.sleep(1)
     

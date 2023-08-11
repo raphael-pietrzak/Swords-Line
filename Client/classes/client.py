@@ -1,6 +1,8 @@
 import socket, json, pygame, threading, sys, time
 from classes.settings import *
 from pygame import Vector2 as vector
+from classes.player import Square, Player
+from classes.imports import Imports
 
 class Client:
     def __init__(self):
@@ -8,6 +10,8 @@ class Client:
         self.client_socket = None
         self.running = False
         self.server_data = {}
+        self.players = {}
+        self.animations = Imports().animations
         self.connect()
 
     def connect(self):
@@ -23,8 +27,6 @@ class Client:
         self.client_socket.close()
         self.running = False
         print("\nConnexion fermée\n")
-
-        
 
 
     def event_loop(self):
@@ -63,13 +65,25 @@ class Client:
 
 
                 response = self.receive_data(self.client_socket)
-                self.server_data = json.loads(response)
+                self.server_data = response
                 print(f"Message recu : {response}")
+                self.update_server_data()
 
                 # time.sleep(1)
 
         finally:
             self.disconnect()
+        
+    def update_server_data(self):
+        for player_id, position in self.server_data.items():
+            x, y = position
+            if player_id in self.players:
+                self.players[player_id].pos = vector((x, y))
+            else:
+                print(self.animations[3]['frames'])
+                player = Player((x, y), self.animations[3]['frames'])
+                # player  = Square((x, y))
+                self.players[player_id] = player
         
 
 
@@ -84,24 +98,21 @@ class Client:
     def receive_data(self, socket):
         try:
             data = socket.recv(1024).decode()
-            return data
+            return json.loads(data)
         except:
             print("Erreur de réception")
             return ""  # Gérer les erreurs de réception
     
-    def draw(self):
-
-        for key, value in self.server_data.items():
-
-            pos = vector(value)
-            rect = pygame.Rect(pos.x, pos.y, 50, 50)
-            pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect)
+    def draw(self, dt):
+        for player_id, player in self.players.items():
+            player.update(dt)
 
 
     def update(self, dt):
-        # time.sleep(1)
+        print("Update")
         self.display_surface.fill('beige')
         self.event_loop() 
-        self.draw()
+        self.draw(dt)
 
+        # time.sleep(1)
         
