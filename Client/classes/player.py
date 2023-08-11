@@ -37,6 +37,7 @@ class Player(pygame.sprite.Sprite):
 
 
     def animate(self, dt):
+        print(self.status)
         key = f'{self.status}' if f'{self.status}' in self.animation_frames else 'idle'
         current_animation = self.animation_frames[key] if self.direction == 'right' else [pygame.transform.flip(f, True, False) for f in self.animation_frames[key]]
 

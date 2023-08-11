@@ -51,6 +51,8 @@ class Client:
             movement.append("up")
         if keys[pygame.K_DOWN]:
             movement.append("down")
+        if keys[pygame.K_SPACE]:
+            movement.append("attack")
         
         return movement       
 
@@ -58,7 +60,9 @@ class Client:
         try:
             while self.running:
 
-                message = {"movement" : self.movement()}
+                message = {
+                    "movement" : self.movement(),
+                }
                 message = json.dumps(message)
 
                 self.send_data(self.client_socket, message)
@@ -80,9 +84,13 @@ class Client:
         players_to_remove = [player_id for player_id, player in self.players.items() if player_id not in self.server_data]
         for player_id in players_to_remove:
             del self.players[player_id]
-        for player_id, position in self.server_data.items():
-            x, y = position
+        for player_id, player_data in self.server_data.items():
+            x, y = player_data['position']
             if player_id in self.players:
+                status = player_data['status']
+                self.players[player_id].status = status
+                direction = player_data['direction']
+                self.players[player_id].direction = direction
                 self.players[player_id].pos = vector((x, y))
             else:
                 player = Player((x, y), self.animations[3]['frames'])
