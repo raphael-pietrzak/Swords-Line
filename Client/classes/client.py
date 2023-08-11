@@ -13,6 +13,7 @@ class Client:
         self.players = {}
         self.animations = Imports().animations
         self.connect()
+        self.lock = threading.Lock()
 
     def connect(self):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -61,13 +62,14 @@ class Client:
                 message = json.dumps(message)
 
                 self.send_data(self.client_socket, message)
-                print(f"Message envoyé : {message}")
+                # print(f"Message envoyé : {message}")
 
 
                 response = self.receive_data(self.client_socket)
                 self.server_data = response
-                print(f"Message recu : {response}")
-                self.update_server_data()
+                # print(f"Message recu : {response}")
+                with self.lock:
+                    self.update_server_data()
 
                 # time.sleep(1)
 
@@ -75,12 +77,14 @@ class Client:
             self.disconnect()
         
     def update_server_data(self):
+        players_to_remove = [player_id for player_id, player in self.players.items() if player_id not in self.server_data]
+        for player_id in players_to_remove:
+            del self.players[player_id]
         for player_id, position in self.server_data.items():
             x, y = position
             if player_id in self.players:
                 self.players[player_id].pos = vector((x, y))
             else:
-                print(self.animations[3]['frames'])
                 player = Player((x, y), self.animations[3]['frames'])
                 # player  = Square((x, y))
                 self.players[player_id] = player
@@ -109,10 +113,11 @@ class Client:
 
 
     def update(self, dt):
-        print("Update")
+        # print("Update")
         self.display_surface.fill('beige')
         self.event_loop() 
-        self.draw(dt)
+        with self.lock:
+            self.draw(dt)
 
         # time.sleep(1)
         
