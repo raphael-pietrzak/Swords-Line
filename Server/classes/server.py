@@ -68,7 +68,7 @@ class Server:
                 with self.lock:
                     self.process_client_data(data, player_id)
 
-                response = self.load_player_data()
+                response = self.load_player_data(player_id)
                 client_socket.send(response.encode())
 
         finally:
@@ -78,16 +78,19 @@ class Server:
                 self.clients_data.pop(player_id)
                 self.players.pop(player_id)
 
-    def load_player_data(self):
+    def load_player_data(self, player_id):
         data_dict = {}
+        player_dict = {}
         for key, value in self.players.items():
-            data_dict[key] = {
+            player_dict[key] = {
                 "position" : [int(value.pos.x), int(value.pos.y)],
                 "status" : value.status,
                 "direction" : value.direction,
                 "health" : value.health,
-                "damage" : value.damage
+                "damage" : value.damage,
            }
+        data_dict["players"] = player_dict
+        data_dict["uuid"] = player_id
 
         return json.dumps(data_dict)
 

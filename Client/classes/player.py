@@ -4,8 +4,8 @@ from classes.settings import *
 from classes.healthbar import HealthBar
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, frames):
-        super().__init__()
+    def __init__(self, pos, frames, group):
+        super().__init__(group)
         # main setup
         self.display_surface = pygame.display.get_surface()
         self.pos = vector(pos)
@@ -56,7 +56,6 @@ class Player(pygame.sprite.Sprite):
         self.animate(dt)
         self.healthbar.update(self.rect.midtop)
         self.healthbar.draw()
-        self.display_surface.blit(self.image, self.rect)
 
 
 class Gobelin(Player):
@@ -70,11 +69,25 @@ class Knight(Player):
 
 
 class Animated(pygame.sprite.Sprite):
-    def __init__(self, pos, frames):
-        super().__init__()
+    def __init__(self, pos, frames, group):
+        super().__init__(group)
         self.display_surface = pygame.display.get_surface()
         self.pos = vector(pos)
         self.image = frames[0]
         self.rect = self.image.get_rect(center=self.pos)
+        self.index = 0
+        self.frames = frames
+
+    def animate(self, dt):
+        self.index += dt * ANIMATION_SPEED
+        if self.index >= len(self.frames):
+            self.index = 0
+        
+        self.image = self.frames[int(self.index)]
+        self.rect = self.image.get_rect(center=self.pos)
+
+    
+    def update(self, dt):
+        self.animate(dt)
 
 

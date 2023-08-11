@@ -10,6 +10,7 @@ class CameraGroup(pygame.sprite.Group):
         self.display_surface = pygame.display.get_surface()
     
     def custom_draw(self, position):
+        position = vector(position)
         self.offset.x = WINDOW_WIDTH // 2 - position.x
         self.offset.y = WINDOW_HEIGHT // 2 - position.y
 
