@@ -54,8 +54,6 @@ class Player(pygame.sprite.Sprite):
     def update(self, dt):
         self.rect.center = self.pos
         self.animate(dt)
-        self.healthbar.update(self.rect.midtop)
-        self.healthbar.draw()
 
 
 class Gobelin(Player):

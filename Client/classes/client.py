@@ -31,8 +31,6 @@ class Client:
         Animated((200, 400), self.animations[2]['frames'], self.all_sprites)
 
 
-
-
     def connect(self):
         self.running = True
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,7 +97,9 @@ class Client:
     def update_server_data(self):
         players_to_remove = [player_id for player_id, player in self.players.items() if player_id not in self.server_data]
         for player_id in players_to_remove:
+            self.all_sprites.remove(self.players[player_id])
             del self.players[player_id]
+            
 
         for player_id, player_data in self.server_data.items():
             if player_id in self.players:
@@ -134,5 +134,5 @@ class Client:
         with self.lock:
             self.all_sprites.update(dt)
         
-            # self.all_sprites.custom_draw(self.players[self.uuid].rect.center)
-        self.all_sprites.draw(self.display_surface)
+        self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
+
