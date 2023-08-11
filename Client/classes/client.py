@@ -1,24 +1,33 @@
 import socket, json, pygame, threading, sys, time
 from classes.settings import *
 from pygame import Vector2 as vector
-from classes.player import Square, Player
+from classes.player import Player
 from classes.imports import Imports
 
 class Client:
     def __init__(self):
+        # Main setup
         self.display_surface = pygame.display.get_surface()
+        self.players = {}
+
+        # Server
         self.client_socket = None
         self.running = False
         self.server_data = {}
-        self.players = {}
-        self.animations = Imports().animations
         self.connect()
+
+        # Thread
         self.lock = threading.Lock()
 
+        # Animations
+        self.animations = Imports().animations
+
+
+
     def connect(self):
+        self.running = True
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((SERVER_IP, SERVER_PORT))
-        self.running = True
         print(f"\nConnecté au serveur {SERVER_IP} sur le port {SERVER_PORT}\n")
 
         self.server_handler_thread = threading.Thread(target=self.handle_server_response)
@@ -38,30 +47,30 @@ class Client:
                 sys.exit()
             
 
-    def movement(self):
+    def get_keyboard_inputs(self):
         keys = pygame.key.get_pressed()
 
-        movement = []
+        inputs = []
 
         if keys[pygame.K_LEFT]:
-            movement.append("left")
+            inputs.append("left")
         if keys[pygame.K_RIGHT]:
-            movement.append("right")
+            inputs.append("right")
         if keys[pygame.K_UP]:
-            movement.append("up")
+            inputs.append("up")
         if keys[pygame.K_DOWN]:
-            movement.append("down")
+            inputs.append("down")
         if keys[pygame.K_SPACE]:
-            movement.append("attack")
+            inputs.append("attack")
         
-        return movement       
+        return inputs       
 
     def handle_server_response(self):
         try:
             while self.running:
 
                 message = {
-                    "movement" : self.movement(),
+                    "inputs" : self.get_keyboard_inputs(),
                 }
                 message = json.dumps(message)
 
@@ -85,16 +94,11 @@ class Client:
         for player_id in players_to_remove:
             del self.players[player_id]
         for player_id, player_data in self.server_data.items():
-            x, y = player_data['position']
             if player_id in self.players:
-                status = player_data['status']
-                self.players[player_id].status = status
-                direction = player_data['direction']
-                self.players[player_id].direction = direction
-                self.players[player_id].pos = vector((x, y))
+                self.players[player_id].refresh_data(player_data)
             else:
+                x, y = player_data['position']
                 player = Player((x, y), self.animations[3]['frames'])
-                # player  = Square((x, y))
                 self.players[player_id] = player
         
 

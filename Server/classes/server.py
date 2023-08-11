@@ -1,6 +1,6 @@
 import socket, threading, json, time, uuid
 from classes.settings import *
-from classes.player import Square
+from classes.player import Player
 from random import randint
 
 
@@ -16,6 +16,8 @@ class Server:
         self.clients_data = {}
         self.clients = [] 
         self.players = {}
+
+        # lock
         self.lock = threading.Lock()
 
 
@@ -54,7 +56,6 @@ class Server:
     
     def handle_client(self, client_socket, addr):
         try:
-            # Creer un identifiant
             player_id = str(uuid.uuid4())
             self.create_player(player_id)
 
@@ -62,18 +63,13 @@ class Server:
                 data = self.receive_data(client_socket)
 
                 if not data:
-                    break  # Quitter la boucle si aucune donnée n'est reçue
-
-                # print(f"Message recu : {data.decode()}")
+                    break  
 
                 with self.lock:
                     self.process_client_data(data, player_id)
 
-                # Envoyer une réponse au client
                 response = self.load_player_data()
-                # print(f"Message envoyé : {response}")
                 client_socket.send(response.encode())
-                # time.sleep(1)
 
         finally:
             with self.lock:
@@ -88,7 +84,9 @@ class Server:
             data_dict[key] = {
                 "position" : [int(value.pos.x), int(value.pos.y)],
                 "status" : value.status,
-                "direction" : value.direction
+                "direction" : value.direction,
+                "health" : value.health,
+                "damage" : value.damage
            }
 
         return json.dumps(data_dict)
@@ -109,7 +107,6 @@ class Server:
         except json.JSONDecodeError:
             print("Erreur de format JSON : ", data)
             pass
-        # print(f"Position du joueur {player_id} : {self.players[player_id].pos}")
         
         
     # players
@@ -117,7 +114,7 @@ class Server:
         x = randint(0, WINDOW_WIDTH)
         y = randint(0, WINDOW_HEIGHT)
 
-        self.players[player_id] = Square((x, y))
+        self.players[player_id] = Player((x, y))
 
     
 
@@ -126,5 +123,4 @@ class Server:
             for client_id, data in self.clients_data.items():
                 self.players[client_id].move(data)
                 self.players[client_id].update(dt)
-        # time.sleep(1)
     
