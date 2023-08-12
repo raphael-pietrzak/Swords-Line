@@ -4,6 +4,7 @@ from pygame import Vector2 as vector
 from classes.player import Player, Animated
 from classes.imports import Imports
 from classes.camera import CameraGroup
+from random import randint
 
 class Client:
     def __init__(self):
@@ -26,7 +27,12 @@ class Client:
 
         # animations
         self.animations = Imports().animations
-        Animated((200, 200), self.animations[5]['frames'], self.all_sprites)
+        
+        # forêt
+        # for _ in range(100):
+        #     Animated((randint(-900, 900), randint(-900, 900)), self.animations[5]['frames'], self.all_sprites)
+
+        
         Animated((300, 200), self.animations[1]['frames'], self.all_sprites)
         Animated((200, 400), self.animations[2]['frames'], self.all_sprites)
 
@@ -86,6 +92,7 @@ class Client:
                 response = self.receive_data(self.client_socket)
                 self.server_data = response["players"]
                 self.uuid = response["uuid"]
+                self.trees = response["trees"]
 
                 with self.lock:
                     self.update_server_data()
@@ -121,7 +128,7 @@ class Client:
 
     def receive_data(self, socket):
         try:
-            data = socket.recv(1024).decode()
+            data = socket.recv(2048).decode()
             return json.loads(data)
         except:
             print("Erreur de réception")
@@ -133,6 +140,12 @@ class Client:
         self.event_loop() 
         with self.lock:
             self.all_sprites.update(dt)
-        
-        self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
 
+        
+        if self.uuid:
+            self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
+        else:
+            self.all_sprites.draw(self.display_surface)
+
+        for pos in self.trees:
+            self.display_surface.blit(self.animations[5]['frames'][0], pos + self.all_sprites.offset)

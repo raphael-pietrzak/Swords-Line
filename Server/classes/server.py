@@ -20,6 +20,11 @@ class Server:
         # lock
         self.lock = threading.Lock()
 
+        # trees
+        self.trees = []
+        for _ in range(100):
+            self.trees.append([randint(-900, 900), randint(-900, 900)])
+
 
     # start - stop
     def start_server(self):
@@ -89,8 +94,11 @@ class Server:
                 "health" : value.health,
                 "damage" : value.damage,
            }
+        
+
         data_dict["players"] = player_dict
         data_dict["uuid"] = player_id
+        data_dict["trees"] = self.trees
 
         return json.dumps(data_dict)
 
@@ -126,4 +134,15 @@ class Server:
             for client_id, data in self.clients_data.items():
                 self.players[client_id].move(data)
                 self.players[client_id].update(dt)
+
+
+#thread class
+class ClientHandler(threading.Thread):
+    def __init__(self, client_socket, addr):
+        super().__init__()
+        self.client_socket = client_socket
+        self.addr = addr
+    
+    def run(self):
+        print(f"Nouvelle connexion de {self.addr[0]} : {self.addr[1]}")
     
