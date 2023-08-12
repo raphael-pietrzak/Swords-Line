@@ -40,3 +40,9 @@ Pourquoi faire le Jeu Principal côté serveur ?
 5. Économie de bande passante : Les clients n'ont besoin de transférer que les entrées des joueurs (ce qui nécessite moins de bande passante) plutôt que des informations détaillées sur l'état du jeu.
 
 6. Simplicité du client : Les clients deviennent moins complexes car ils n'ont pas à gérer l'ensemble de la logique du jeu, ce qui peut faciliter le développement et la maintenance.
+
+
+# Installation
+
+Cf README.md dans le dossier Client et dans le dossier Server.
+
