@@ -1,0 +1,9 @@
+
+# Server
+HOST = '0.0.0.0'  
+PORT = 12345     
+BUFFER_SIZE = 1024
+
+WINDOW_WIDTH = 400
+WINDOW_HEIGHT = 800
+

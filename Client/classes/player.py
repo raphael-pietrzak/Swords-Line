@@ -42,9 +42,7 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def refresh_data(self, player_data):
-        x, y = player_data['position']
-        self.pos = vector((x, y))
-
+        self.pos = vector(player_data['position'])
         self.status = player_data['status']
         self.direction = player_data['direction']
         self.healthbar.current_health = player_data['health']

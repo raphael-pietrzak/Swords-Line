@@ -44,5 +44,3 @@ Pourquoi faire le Jeu Principal côté serveur ?
 
 # Installation
 
-Cf README.md dans le dossier Client et dans le dossier Server.
-

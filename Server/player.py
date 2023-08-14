@@ -1,7 +1,6 @@
 import time
 import pygame
 from pygame import Vector2 as vector
-from classes.cooldown import Cooldown
 
 
 
@@ -9,7 +8,7 @@ class Player:
     def __init__(self, pos):
         # main setup
         self.pos = vector(pos)
-        self.cooldown = Cooldown(10)
+        self.cooldown = Cooldown(1)
 
         # status
         self.status = "idle"
@@ -25,14 +24,13 @@ class Player:
         self.hitbox.center = self.pos
 
     
-    def move(self, inputs_dict):
-        inputs = inputs_dict['inputs']
+    def move(self, client_data):
+        inputs = client_data['inputs']
         
         if self.cooldown.active:
             return
         
         self.status = "run"
-
 
         if 'right' in inputs:
             self.pos.x += 1
@@ -52,13 +50,35 @@ class Player:
 
         self.cooldown.activate()
 
+
     def hit(self, damage):
         self.health -= damage if self.health - damage >= 0 else 0
 
-    def update(self, dt):
+
+    def update(self, client_data):
+        self.move(client_data)
         self.cooldown.update()
 
 
 
 
+class Cooldown:
+    def __init__(self, duration):
+        self.active = False
+        self.duration = duration
+        self.start_time = 0
+
+    def activate(self):
+        self.active = True
+        self.start_time = pygame.time.get_ticks()
+
+    def deactivate(self):
+        self.active = False
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if self.active:
+            if current_time - self.start_time >= self.duration:
+                self.deactivate()
+                self.active = False
 

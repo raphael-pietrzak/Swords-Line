@@ -12,10 +12,11 @@ class Main:
         self.client = Client()
     
     def run(self):
-        while self.client.running:
+        while True:
             dt = self.clock.tick() / 1000
             self.client.update(dt)
             pygame.display.update()
+
 
 
 if __name__ == "__main__":

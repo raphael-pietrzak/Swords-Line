@@ -1,4 +1,4 @@
-import socket, json, pygame, threading, sys, time
+import socket, json, pygame, sys, time
 from classes.settings import *
 from pygame import Vector2 as vector
 from classes.player import Player, Animated
@@ -10,27 +10,26 @@ class Client:
     def __init__(self):
         # main setup
         self.display_surface = pygame.display.get_surface()
+        self.animations = Imports().animations
+        self.all_sprites = CameraGroup()
 
         # players
         self.players = {}
-        self.uuid = 0
-        self.all_sprites = CameraGroup()
+
+        # client
+        self.inputs = []
 
         # server
-        self.client_socket = None
-        self.running = False
         self.server_data = {}
+        self.players_data = {}
+        self.uuid = 0
+        self.trees = []
+
+
+        # socket
+        self.client_socket = None
         self.connect()
 
-        # thread
-        self.lock = threading.Lock()
-
-        # animations
-        self.animations = Imports().animations
-        
-        # forêt
-        # for _ in range(100):
-        #     Animated((randint(-900, 900), randint(-900, 900)), self.animations[5]['frames'], self.all_sprites)
 
         
         Animated((300, 200), self.animations[1]['frames'], self.all_sprites)
@@ -38,114 +37,121 @@ class Client:
 
 
     def connect(self):
-        self.running = True
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((SERVER_IP, SERVER_PORT))
         print(f"\nConnecté au serveur {SERVER_IP} sur le port {SERVER_PORT}\n")
 
-        self.server_handler_thread = threading.Thread(target=self.handle_server_response)
-        self.server_handler_thread.start()
 
     def disconnect(self):
-        self.client_socket.close()
-        self.running = False
         print("\nConnexion fermée\n")
+        self.client_socket.close()
+        pygame.quit()
+        sys.exit()
 
 
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False
+                print("\nConnexion fermée\n")
+                self.client_socket.close()
                 pygame.quit()
                 sys.exit()
+            
+            self.get_keyboard_inputs()
             
 
     def get_keyboard_inputs(self):
         keys = pygame.key.get_pressed()
 
-        inputs = []
+        self.inputs = []
 
         if keys[pygame.K_LEFT]:
-            inputs.append("left")
+            self.inputs.append("left")
         if keys[pygame.K_RIGHT]:
-            inputs.append("right")
+            self.inputs.append("right")
         if keys[pygame.K_UP]:
-            inputs.append("up")
+            self.inputs.append("up")
         if keys[pygame.K_DOWN]:
-            inputs.append("down")
+            self.inputs.append("down")
         if keys[pygame.K_SPACE]:
-            inputs.append("attack")
+            self.inputs.append("attack")
         
-        return inputs       
 
     def handle_server_response(self):
-        try:
-            while self.running:
+        # send
+        message = {"inputs" : self.inputs}
+        self.send_to_server(message)
 
-                message = {
-                    "inputs" : self.get_keyboard_inputs(),
-                }
-                message = json.dumps(message)
+        # receive
+        self.server_data = self.get_server_data()
 
-                self.send_data(self.client_socket, message)
+        if not self.server_data:
+            return
 
-                response = self.receive_data(self.client_socket)
-                self.server_data = response["players"]
-                self.uuid = response["uuid"]
-                self.trees = response["trees"]
-
-                with self.lock:
-                    self.update_server_data()
+        # update
+        self.players_data = self.server_data["players"]
+        self.uuid = self.server_data["uuid"]
+        self.trees = self.server_data["trees"]
 
 
-        finally:
-            self.disconnect()
+
+    def update_players(self):
+        players_to_remove = {player_id for player_id in self.players.keys() if player_id not in self.players_data}
         
-    def update_server_data(self):
-        players_to_remove = [player_id for player_id, player in self.players.items() if player_id not in self.server_data]
         for player_id in players_to_remove:
-            self.all_sprites.remove(self.players[player_id])
-            del self.players[player_id]
+            player = self.players.pop(player_id)
+            self.all_sprites.remove(player)
             
-
-        for player_id, player_data in self.server_data.items():
+        for player_id, player_data in self.players_data.items():
             if player_id in self.players:
                 self.players[player_id].refresh_data(player_data)
             else:
-                x, y = player_data['position']
-                player = Player((x, y), self.animations[3]['frames'], self.all_sprites)
-                self.players[player_id] = player
+                self._create_new_player(player_id, player_data)
+
+
+    def _create_new_player(self, player_id, player_data):
+        x, y = player_data['position']
+        player = Player((x, y), self.animations[3]['frames'], self.all_sprites)
+        self.players[player_id] = player
+
+
+
+    def send_to_server(self, data):
+        try:
+            data = json.dumps(data)
+            self.client_socket.send(data.encode())
+
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            self.disconnect()
+
+
+
+    def get_server_data(self):
+        try:
+            raw_data = self.client_socket.recv(BUFFER_SIZE)
+            if not raw_data:
+                return None  # No data received
+
+            data = json.loads(raw_data.decode())
+            return data
         
+        except json.JSONDecodeError as json_error:
+            print(f"Erreur de décodage JSON lors de la réception des données du serveur : {raw_data[:5]} [...] {raw_data[-5:]}")
+            return None
 
 
-    def send_data(self, socket, data):
-        try:
-            socket.send(data.encode())
-        except:
-            print("Erreur d'envoi")
-            pass  
-
-
-    def receive_data(self, socket):
-        try:
-            data = socket.recv(2048).decode()
-            return json.loads(data)
-        except:
-            print("Erreur de réception")
-            return "" 
 
 
     def update(self, dt):
-        self.display_surface.fill('beige')
         self.event_loop() 
-        with self.lock:
-            self.all_sprites.update(dt)
-
+        self.handle_server_response()
+        self.update_players()
+        self.all_sprites.update(dt)
         
-        if self.uuid:
-            self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
-        else:
-            self.all_sprites.draw(self.display_surface)
-
+        # draw
+        self.display_surface.fill('beige')
+        self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
         for pos in self.trees:
             self.display_surface.blit(self.animations[5]['frames'][0], pos + self.all_sprites.offset)
+

@@ -2,12 +2,12 @@
 # Configuration du client
 
 # SERVER_IP = '192.168.1.83'  # Adresse IP privée du serveur MacBook Pro
-SERVER_IP = '192.168.1.90'  # Adresse IP privée Mac Mini
+SERVER_IP = '81.185.123.57'  # Adresse IP privée Mac Mini
 SERVER_PORT = 12345     # Port d'écoute du serveur
-
+BUFFER_SIZE = 2048
 
 ANIMATION_SPEED = 10
-WINDOW_WIDTH = 400
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800
 PLAYER_SPEED = 1
 
