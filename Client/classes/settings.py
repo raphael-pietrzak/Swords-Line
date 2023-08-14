@@ -1,8 +1,8 @@
 
 # Configuration du client
 
-# SERVER_IP = '192.168.1.83'  # Adresse IP privée du serveur MacBook Pro
-SERVER_IP = '81.185.123.57'  # Adresse IP privée Mac Mini
+SERVER_IP = '192.168.1.83'  # Adresse IP privée du serveur MacBook Pro
+
 SERVER_PORT = 12345     # Port d'écoute du serveur
 BUFFER_SIZE = 2048
 

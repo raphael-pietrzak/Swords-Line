@@ -1,7 +1,8 @@
 import socket, json, pygame, sys, time
 from classes.settings import *
 from pygame import Vector2 as vector
-from classes.player import Player, Animated
+from player.player import Player
+from player.animated import Animated
 from classes.imports import Imports
 from classes.camera import CameraGroup
 from random import randint
@@ -30,8 +31,18 @@ class Client:
         self.client_socket = None
         self.connect()
 
+        self.init_data()
 
-        
+
+
+    def init_data(self):
+        while not self.server_data:
+            self.server_data = self.get_server_data()
+            
+        self.uuid = self.server_data["uuid"]
+        for pos in self.server_data["trees"]:
+            self.trees.append(Animated(pos, self.animations[5]['frames'], self.all_sprites))
+
         Animated((300, 200), self.animations[1]['frames'], self.all_sprites)
         Animated((200, 400), self.animations[2]['frames'], self.all_sprites)
 
@@ -90,8 +101,7 @@ class Client:
 
         # update
         self.players_data = self.server_data["players"]
-        self.uuid = self.server_data["uuid"]
-        self.trees = self.server_data["trees"]
+
 
 
 
@@ -129,15 +139,16 @@ class Client:
 
     def get_server_data(self):
         try:
-            raw_data = self.client_socket.recv(BUFFER_SIZE)
+            raw_data = self.client_socket.recv(BUFFER_SIZE).decode()
             if not raw_data:
                 return None  # No data received
 
-            data = json.loads(raw_data.decode())
+            data = json.loads(raw_data)
             return data
         
         except json.JSONDecodeError as json_error:
-            print(f"Erreur de décodage JSON lors de la réception des données du serveur : {raw_data[:5]} [...] {raw_data[-5:]}")
+
+            print(f"Erreur de décodage JSON lors de la réception des données du serveur : {raw_data}")
             return None
 
 
@@ -152,6 +163,5 @@ class Client:
         # draw
         self.display_surface.fill('beige')
         self.all_sprites.custom_draw(self.players[self.uuid].rect.center, self.players.values())
-        for pos in self.trees:
-            self.display_surface.blit(self.animations[5]['frames'][0], pos + self.all_sprites.offset)
+
 

@@ -63,10 +63,8 @@ class HealthBar(pygame.sprite.Sprite):
         self.display_surface.blit(level_text_shadow, level_text_shadow_rect)
         self.display_surface.blit(level_text, self.level_rect)
 
-    def update(self, pos):
-        self.rect.midtop = pos + vector(self.level_rect.width // 2, 20)
-        if self.current_health < self.max_health:
-            self.draw()
+    def update(self, offset):
+        self.rect.topleft += offset
 
         
         
