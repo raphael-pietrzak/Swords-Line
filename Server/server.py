@@ -9,11 +9,12 @@ class Server:
         # main setup
         self.running = False
         self.server_socket = None
-        self.accept_clients_thread = None
 
         # clients
         self.clients = [] 
         self.server_data = {}
+        self.server_data["players"] = {}
+
 
         # trees
         self.trees = []
@@ -62,38 +63,31 @@ class Server:
     
 
 
-    def extract_server_data(self):
-        self.server_data = {}
-        player_dict = {}
-        for client in self.clients:
-            player = client.player
-            player_dict[client.uuid] = {
-                "position" : [int(player.pos.x), int(player.pos.y)],
-                "status" : player.status,
-                "direction" : player.direction,
-                "health" : player.health,
-                "damage" : player.damage,
-           }
-        
+    def extract_server_data(self, player, uuid):
         self.server_data['type'] = "player"
-        self.server_data["players"] = player_dict
+        self.server_data["players"][uuid] = {
+            "position" : [int(player.pos.x), int(player.pos.y)],
+            "status" : player.status,
+            "direction" : player.direction,
+            "health" : player.health,
+            "damage" : player.damage
+        }
 
         return self.server_data
     
 
     def init_client_data(self, uuid):
-        self.server_data = {}
-
-        self.server_data['type'] = "init"
-        
-
-        self.server_data["trees"] = self.trees
-        self.server_data["gold"] = self.gold
-        self.server_data["uuid"] = uuid
+        data = {}
+        data['type'] = "init"
+        data["trees"] = self.trees
+        data["gold"] = self.gold
+        data["uuid"] = uuid
+        return data
 
     
     def remove_client(self, client):
         self.clients.remove(client)
+        self.server_data["players"].pop(client.uuid)
     
         
 

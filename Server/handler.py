@@ -21,8 +21,8 @@ class ClientHandler(threading.Thread):
         self.player = Player((randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
         
         # send init
-        self.server.init_client_data(self.uuid)
-        self.send_to_client()
+        data = self.server.init_client_data(self.uuid)
+        self.send_to_client(data)
         
 
 
@@ -30,14 +30,12 @@ class ClientHandler(threading.Thread):
         while self.running:
             client_data = self.get_client_data()
 
-            # time.sleep(0.2)
             if client_data:
-                
                 self.player.update(client_data)
 
-                self.server_data = self.server.extract_server_data()
+            self.server_data = self.server.extract_server_data(self.player, self.uuid)
 
-            self.send_to_client()
+            self.send_to_client(self.server_data)
 
     
 
@@ -59,9 +57,9 @@ class ClientHandler(threading.Thread):
             return None
         
     
-    def send_to_client(self):
+    def send_to_client(self, data):
         try:
-            data = json.dumps(self.server.server_data)
+            data = json.dumps(data)
             self.socket.send(data.encode())
 
         except:
