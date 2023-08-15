@@ -1,6 +1,8 @@
 
 import threading, uuid, json, time
 from random import randint
+
+import pygame
 from settings import *
 from player import Player
 
@@ -16,9 +18,11 @@ class ClientHandler(threading.Thread):
         self.socket = client_socket
         self.adrr = client_addr
 
+
         # player
         self.uuid = str(uuid.uuid4())
         self.player = Player((randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
+
         
         # send init
         data = self.server.init_client_data(self.uuid)
@@ -31,9 +35,18 @@ class ClientHandler(threading.Thread):
             client_data = self.get_client_data()
 
             if client_data:
-                self.player.update(client_data)
+                with self.server.lock:
+                    self.player.update(client_data)
 
+            collisions = pygame.sprite.spritecollide(self.player, self.server.gold_sprites, True, pygame.sprite.collide_mask)
+            if collisions:
+                self.player.gold_count += len(collisions)
+                for gold in collisions:
+                    self.server.gold_collected.append([gold.pos.x, gold.pos.y])
+                    
             self.server_data = self.server.extract_server_data(self.player, self.uuid)
+
+
 
             self.send_to_client(self.server_data)
 

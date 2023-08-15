@@ -4,10 +4,12 @@ from pygame import Vector2 as vector
 
 
 
-class Player:
+class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
+        super().__init__()
         # main setup
         self.pos = vector(pos)
+        self.gold_count = 0
 
         # status
         self.status = "idle"
@@ -19,8 +21,9 @@ class Player:
         self.damage = 10
 
         # hitbox
-        self.hitbox = pygame.Rect(0, 0, 20, 20)
-        self.hitbox.center = self.pos
+        self.image = pygame.Surface((40, 60))
+        self.rect = self.image.get_rect(center=self.pos)
+        self.mask = pygame.mask.from_surface(self.image)
 
         self.last_update_time = time.time()
     
@@ -48,6 +51,9 @@ class Player:
         
         if not inputs:
             self.status = "idle"
+        
+        self.rect.center = self.pos
+        self.mask = pygame.mask.from_surface(self.image)
 
 
     def hit(self, damage):
@@ -56,6 +62,7 @@ class Player:
 
     def update(self, client_data):
         self.move(client_data)
+        self.rect.center = self.pos
 
 
 
@@ -80,3 +87,12 @@ class Cooldown:
                 self.deactivate()
                 self.active = False
 
+
+class Gold(pygame.sprite.Sprite):
+    def __init__(self, pos, group):
+        super().__init__(group)
+        self.pos = vector(pos)
+        self.image = pygame.image.load('graphics/Ressources/Gold_Nugget.png')
+
+        self.rect = self.image.get_rect(center=self.pos)
+        self.mask = pygame.mask.from_surface(self.image)

@@ -1,7 +1,7 @@
 import pygame
 from classes.menu import GameMenu
 from classes.settings import *
-from classes.client import Client
+from classes.editor import Editor
 
 class Main:
     def __init__(self):
@@ -10,13 +10,13 @@ class Main:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
         self.clock = pygame.time.Clock()
-        self.client = Client(self.switch_screen)
+        self.editor = Editor(self.switch_screen)
         self.menu = GameMenu(self.switch_screen)
         self.screen = self.menu
 
     def switch_screen(self, screen):
         match screen:
-            case 'client': self.screen = self.client
+            case 'client': self.screen = self.editor
             case 'menu': self.screen = self.menu
 
     

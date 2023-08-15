@@ -10,7 +10,7 @@ class Animated(pygame.sprite.Sprite):
         self.display_surface = pygame.display.get_surface()
         self.pos = vector(pos)
         self.image = frames[0]
-        self.rect = self.image.get_rect(topleft=self.pos)
+        self.rect = self.image.get_rect(center=self.pos)
         self.index = uniform(0, len(frames) - 1)
         self.frames = frames
         self.ground_offset = vector(0, -15)
@@ -28,10 +28,11 @@ class Animated(pygame.sprite.Sprite):
             self.index = 0
         
         self.image = self.frames[int(self.index)]
-        self.rect = self.image.get_rect(topleft=self.pos)
+        self.rect = self.image.get_rect(center=self.pos)
 
     def draw(self, offset):
-        self.display_surface.blit(self.image, self.pos + offset)
+        pos = self.rect.topleft
+        self.display_surface.blit(self.image, pos + offset)
         # self.display_surface.blit(self.block.image, self.block.pos + offset)
         # self.display_surface.blit(self.log, self.block.pos + offset)
 
@@ -48,4 +49,4 @@ class Block:
         self.rect.midbottom = self.pos
         self.image = pygame.Surface(size)
         self.image.fill('black')
-        self.pos = self.rect.topleft
+        self.pos = self.rect.center

@@ -14,7 +14,12 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=self.pos)
         self.attacking = False
         self.ground_offset = vector(0, -60)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.gold_count = 0
 
+
+        self.hitbox = pygame.Rect(0, 0, 20, 20)
+        self.hitbox.center = self.pos
 
         # status
         self.status = "idle"
@@ -58,15 +63,17 @@ class Player(pygame.sprite.Sprite):
         self.direction = player_data['direction']
         self.healthbar.current_health = player_data['health']
         self.damage = player_data['damage']
+        self.gold_count = player_data['gold']
     
     def draw(self, offset):
-        self.display_surface.blit(self.image, self.pos + offset)
+        pos = self.rect.topleft
+        self.display_surface.blit(self.image, pos + offset)
         self.healthbar.update(offset)
         self.healthbar.draw()
 
 
     def update(self, dt):
-        self.rect.topleft = self.pos
+        self.rect.center = self.pos
         self.animate(dt)
 
 

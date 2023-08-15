@@ -26,6 +26,7 @@ class GameMenu:
             if event.type == pygame.MOUSEBUTTONDOWN and mouse_buttons()[0]:
                 for sprite in self.buttons:
                     if sprite.rect.collidepoint(mouse_pos()):
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                         self.switch_screen("client")
 
 
@@ -41,9 +42,7 @@ class GameMenu:
     # update
     def update(self, dt):
         self.display_surface.fill(MENU_BG_COLOR)
-        self.buttons.draw(self.display_surface)
         self.buttons.update()
-        self.buttons.is_hovering()
         self.event_loop()
 
     
@@ -65,9 +64,9 @@ class ButtonGroup(pygame.sprite.Group):
         self.hover = hover
     
     def update(self):
-        self.is_hovering()
         for sprite in self:
-            sprite.update()
+            sprite.draw()
+        self.is_hovering()
 
 
 # components    
@@ -94,9 +93,12 @@ class Button(pygame.sprite.Sprite):
             outline = self.rect.copy().inflate(10, 10)
             pygame.draw.rect(self.display_surface, 'white', outline, 4, 5)
     
-    def update(self):
+    def draw(self):
+        pos = self.rect.topleft
+        self.display_surface.blit(self.image, pos)
         self.draw_text()
         self.hover()
+    
 
 class Sign(pygame.sprite.Sprite):
     def __init__(self, pos, size, text, group):
@@ -111,14 +113,17 @@ class Sign(pygame.sprite.Sprite):
     
     def draw_text(self):
         self.image.fill(BUTTON_BG_COLOR)
-        self.text_surf = self.font.render(self.text, False, 'white')
+        self.text_surf = self.font.render(self.text, True, 'white')
         self.text_rect = self.text_surf.get_rect(center = self.rect.center)
         self.display_surface.blit(self.text_surf, self.text_rect)
     
     def toggle(self):
         self.text = 'On' if self.text == 'Off' else 'Off'
 
-    def update(self):
+    def draw(self):
+        pos = self.rect.topleft
+        self.display_surface.blit(self.image, pos)
         self.draw_text()
+
 
 
