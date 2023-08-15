@@ -17,8 +17,13 @@ class Server:
 
         # trees
         self.trees = []
+        self.gold = []
         for _ in range(100):
             self.trees.append([randint(-900, 900), randint(-900, 900)])
+            self.gold.append([randint(-900, 900), randint(-900, 900)])
+        
+        self.start_server()
+
 
 
     # start - stop
@@ -47,7 +52,7 @@ class Server:
                 client_socket, addr = self.server_socket.accept()
                 print(f"Nouvelle connexion de {addr[0]} : {addr[1]}")
 
-                client_handler_thread = ClientHandler(self.remove_client, self.extract_server_data, client_socket, addr)
+                client_handler_thread = ClientHandler(self, client_socket, addr)
                 client_handler_thread.start()
 
                 self.clients.append(client_handler_thread)
@@ -57,7 +62,8 @@ class Server:
     
 
 
-    def extract_server_data(self, uuid):
+    def extract_server_data(self):
+        self.server_data = {}
         player_dict = {}
         for client in self.clients:
             player = client.player
@@ -68,12 +74,23 @@ class Server:
                 "health" : player.health,
                 "damage" : player.damage,
            }
-
+        
+        self.server_data['type'] = "player"
         self.server_data["players"] = player_dict
-        self.server_data["trees"] = self.trees
-        self.server_data["uuid"] = uuid
 
         return self.server_data
+    
+
+    def init_client_data(self, uuid):
+        self.server_data = {}
+
+        self.server_data['type'] = "init"
+        
+
+        self.server_data["trees"] = self.trees
+        self.server_data["gold"] = self.gold
+        self.server_data["uuid"] = uuid
+
     
     def remove_client(self, client):
         self.clients.remove(client)

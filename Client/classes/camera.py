@@ -22,7 +22,7 @@ class CameraGroup(pygame.sprite.Group):
 
             rect = sprite.rect.copy().move(self.offset.x, self.offset.y)
             pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect , 2)
-            pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
+            # pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
 
 
         

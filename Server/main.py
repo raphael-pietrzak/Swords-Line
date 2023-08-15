@@ -9,7 +9,8 @@ class Main:
 
     
     def run(self):
-        self.server.start_server()
+        pass
+        
 
 
 

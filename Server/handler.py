@@ -1,14 +1,15 @@
 
-import threading, uuid, json
+import threading, uuid, json, time
 from random import randint
 from settings import *
 from player import Player
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, remove_client, extract_server_data, client_socket, client_addr):
+    def __init__(self, server, client_socket, client_addr):
         super().__init__()
         self.running = True
+        self.server = server
 
         # client
         self.server_data = {}
@@ -19,20 +20,22 @@ class ClientHandler(threading.Thread):
         self.uuid = str(uuid.uuid4())
         self.player = Player((randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
         
-        # extract
-        self.extract_server_data = extract_server_data
-        self.remove_client = remove_client
+        # send init
+        self.server.init_client_data(self.uuid)
+        self.send_to_client()
+        
 
 
     def run(self):
         while self.running:
             client_data = self.get_client_data()
 
+            # time.sleep(0.2)
             if client_data:
-                    
+                
                 self.player.update(client_data)
 
-                self.server_data = self.extract_server_data(self.uuid)
+                self.server_data = self.server.extract_server_data()
 
             self.send_to_client()
 
@@ -58,7 +61,7 @@ class ClientHandler(threading.Thread):
     
     def send_to_client(self):
         try:
-            data = json.dumps(self.server_data)
+            data = json.dumps(self.server.server_data)
             self.socket.send(data.encode())
 
         except:
@@ -69,7 +72,7 @@ class ClientHandler(threading.Thread):
         print(f"Connexion fermée avec {self.adrr[0]} : {self.adrr[1]}")
         self.socket.close()
         self.running = False
-        self.remove_client(self)
+        self.server.remove_client(self)
 
 
         

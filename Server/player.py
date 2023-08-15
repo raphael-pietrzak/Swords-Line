@@ -8,14 +8,13 @@ class Player:
     def __init__(self, pos):
         # main setup
         self.pos = vector(pos)
-        self.cooldown = Cooldown(1)
 
         # status
         self.status = "idle"
         self.direction = "right"
 
         # stats
-        self.speed = 2
+        self.speed = 100
         self.health = 100
         self.damage = 10
 
@@ -23,32 +22,32 @@ class Player:
         self.hitbox = pygame.Rect(0, 0, 20, 20)
         self.hitbox.center = self.pos
 
+        self.last_update_time = time.time()
     
     def move(self, client_data):
         inputs = client_data['inputs']
         
-        if self.cooldown.active:
-            return
+        current_time = time.time()
+        time_elapsed = current_time - self.last_update_time
+        self.last_update_time = current_time
         
-        self.status = "run"
+        self.status = "run" 
 
         if 'right' in inputs:
-            self.pos.x += 1
+            self.pos.x += self.speed * time_elapsed
             self.direction = "right"
         if 'left' in inputs:
-            self.pos.x -= 1
+            self.pos.x -= self.speed * time_elapsed
             self.direction = "left"
         if 'up' in inputs:
-            self.pos.y -= 1
+            self.pos.y -= self.speed * time_elapsed
         if 'down' in inputs:
-            self.pos.y += 1
+            self.pos.y += self.speed * time_elapsed
         if 'attack' in inputs:
             self.status = "attack"
         
         if not inputs:
             self.status = "idle"
-
-        self.cooldown.activate()
 
 
     def hit(self, damage):
@@ -57,7 +56,6 @@ class Player:
 
     def update(self, client_data):
         self.move(client_data)
-        self.cooldown.update()
 
 
 

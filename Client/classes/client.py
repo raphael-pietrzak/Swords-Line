@@ -5,14 +5,17 @@ from player.player import Player
 from player.animated import Animated
 from classes.imports import Imports
 from classes.camera import CameraGroup
-from random import randint
+from random import randint, choice
+from player.ressources import Ressource
 
 class Client:
-    def __init__(self):
+    def __init__(self, switch):
         # main setup
         self.display_surface = pygame.display.get_surface()
         self.animations = Imports().animations
         self.all_sprites = CameraGroup()
+        self.items_sprites = pygame.sprite.Group()
+        self.switch_screen = switch
 
         # players
         self.players = {}
@@ -43,8 +46,17 @@ class Client:
         for pos in self.server_data["trees"]:
             self.trees.append(Animated(pos, self.animations[5]['frames'], self.all_sprites))
 
+        gold = pygame.image.load('graphics/Ressources/Gold_Nugget.png').convert_alpha()
+        for pos in self.server_data["gold"]:
+            Ressource((pos[0], pos[1]), gold, [self.all_sprites])
+
         Animated((300, 200), self.animations[1]['frames'], self.all_sprites)
         Animated((200, 400), self.animations[2]['frames'], self.all_sprites)
+        flint = pygame.image.load('graphics/Ressources/Flint.png').convert_alpha()
+        rocks = pygame.image.load('graphics/Ressources/Rocks.png').convert_alpha()
+
+
+
 
 
     def connect(self):
@@ -67,6 +79,9 @@ class Client:
                 self.client_socket.close()
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.switch_screen("menu")
             
             self.get_keyboard_inputs()
             
@@ -139,7 +154,11 @@ class Client:
 
     def get_server_data(self):
         try:
-            raw_data = self.client_socket.recv(BUFFER_SIZE).decode()
+            raw_data = ""
+            size = 0
+            while raw_data[-1:] != '}' and size < 10:
+                raw_data += self.client_socket.recv(BUFFER_SIZE).decode()
+                size += 1
             if not raw_data:
                 return None  # No data received
 
@@ -150,7 +169,6 @@ class Client:
 
             print(f"Erreur de décodage JSON lors de la réception des données du serveur : {raw_data}")
             return None
-
 
 
 

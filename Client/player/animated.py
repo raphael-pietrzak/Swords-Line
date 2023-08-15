@@ -2,7 +2,8 @@
 import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
-
+from random import randint
+from random import choice, randrange, uniform
 class Animated(pygame.sprite.Sprite):
     def __init__(self, pos, frames, group):
         super().__init__(group)
@@ -10,14 +11,14 @@ class Animated(pygame.sprite.Sprite):
         self.pos = vector(pos)
         self.image = frames[0]
         self.rect = self.image.get_rect(topleft=self.pos)
-        self.index = 0
+        self.index = uniform(0, len(frames) - 1)
         self.frames = frames
         self.ground_offset = vector(0, -15)
 
         self.block_size = vector(30, 20)
         self.block = Block(self.rect.midbottom + self.ground_offset , self.block_size)
 
-        self.log = pygame.image.load('graphics/Dead_and_Fire/Log.png').convert_alpha()
+        # self.log = pygame.image.load('graphics/Dead_and_Fire/Log.png').convert_alpha()
 
 
 
@@ -32,11 +33,13 @@ class Animated(pygame.sprite.Sprite):
     def draw(self, offset):
         self.display_surface.blit(self.image, self.pos + offset)
         # self.display_surface.blit(self.block.image, self.block.pos + offset)
-        self.display_surface.blit(self.log, self.block.pos + offset)
+        # self.display_surface.blit(self.log, self.block.pos + offset)
 
     
     def update(self, dt):
         self.animate(dt)
+
+
 
 class Block:
     def __init__(self, pos, size):

@@ -2,6 +2,7 @@ import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
 from player.healthbar import HealthBar
+from random import randint
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, frames, group):
