@@ -1,5 +1,7 @@
 ## Bloc Notes
 
+![Alt text](<Client/graphics/Readme/Screenshot 2023-08-16 at 14.29.54.png>)
+
 # animations
 
 dead 1

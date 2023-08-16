@@ -46,6 +46,7 @@ class Editor:
 
         # gold
         gold = pygame.image.load('graphics/Ressources/Gold_Nugget.png').convert_alpha()
+        gold = pygame.transform.scale(gold, (20, 20))
         self.gold = []
         for pos in self.server_data["gold"]:
             Ressource((pos[0], pos[1]), gold, [self.all_sprites, self.gold_sprites])
