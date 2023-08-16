@@ -1,8 +1,13 @@
 
 # Configuration du client
 
-# SERVER_IP = '192.168.1.83'  # Adresse IP privée du serveur MacBook Pro
-SERVER_IP = '81.185.123.57'  # Adresse IP privée Mac Mini
+SERVER_IP = '127.0.0.1'  # Localhost
+
+
+# SERVER_IP = '127.0.0.1'  # Mettez l'adresse IP publique du serveur
+# Configurez votre box en ouvrant une redirection de port
+# 12345 vers l'adresse ip privée de votre ordi qui sert de serveur
+
 SERVER_PORT = 12345     # Port d'écoute du serveur
 BUFFER_SIZE = 2048
 
