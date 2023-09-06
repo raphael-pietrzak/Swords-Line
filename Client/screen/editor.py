@@ -12,16 +12,12 @@ from classes.imports import Graphics
 class Editor:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
-        self.lock = threading.Lock()
+
         self.client = Client()
-        self.clients = {}
 
-        self.player_sprites = pygame.sprite.Group()
-        self.tree_sprites = pygame.sprite.Group()
-        self.house_sprites = pygame.sprite.Group()
-
-        self.player_dict = {}
-        self.tree_dict = {}
+        self.players = {}
+        self.trees = {}
+        self.houses = {}
 
         self.all_sprites = CameraGroup()
 
@@ -57,12 +53,39 @@ class Editor:
         self.client.send(self.inputs)
         data = self.client.get_server_data()
         trees = data['trees']
-        for tree in trees:
-            self.display_surface.blit(self.graphics['tree'][0], tree['position'])
-            
-            
-      
+        players = data['players']
+        houses = data['houses']
 
+        for tree in trees:
+            if tree['id'] in self.trees:
+                self.trees[tree['id']].update_data(tree)
+            else:
+                self.trees[tree['id']] = Tree(tree['position'], self.graphics['tree'], self.all_sprites)
+                self.trees[tree['id']].update_data(tree)
+
+        for player in players:
+            if player['id'] in self.players:
+                self.players[player['id']].update_data(player)
+            else:
+                graphics = self.graphics['goblin']
+                match player['faction']:
+                    case 'Goblin': graphics = self.graphics['goblin']
+                    case 'Knight': graphics = self.graphics['knight']
+                        
+                self.players[player['id']] = Player(player['position'], graphics, self.all_sprites)
+                self.players[player['id']].update_data(player)
+            
+        for house in houses:
+            if house['id'] in self.houses:
+                self.houses[house['id']].update_data(house)
+            else:
+                graphics = self.graphics['goblin_house']
+                match house['faction']:
+                    case 'Goblin': graphics = self.graphics['goblin_house']
+                    case 'Knight': graphics = self.graphics['knight_house']
+                self.houses[house['id']] = House(house['position'], graphics, self.all_sprites, house['faction'])
+                self.houses[house['id']].update_data(house)
+            
     def update(self, dt):
         self.event_loop()
         self.all_sprites.update(dt)

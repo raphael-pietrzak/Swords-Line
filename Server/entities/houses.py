@@ -28,12 +28,13 @@ class House(Sprite):
                 self.kill()
     
     def get_json_data(self):
-        # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100 }
+        # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }
         json_data = {}
         json_data['id'] = self.id
         json_data['faction'] = self.faction
         json_data['position'] = [int(self.pos.x), int(self.pos.y)]
         json_data['health'] = self.healthbar.current_health
+        json_data['visible'] = self.is_visible
         return json_data
 
     

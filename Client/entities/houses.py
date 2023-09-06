@@ -1,9 +1,26 @@
 
 import pygame
-from entities.sprites import Sprite
 from entities.player import HealthBar
 from classes.time import Cooldown
+from pygame import Vector2 as vector
 
+
+class Sprite(pygame.sprite.Sprite):
+    def __init__(self, pos, image, group):
+        super().__init__(group)
+        self.group = group
+        self.display_surface = pygame.display.get_surface()
+        self.pos = vector(pos)
+        self.image = image
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.ground_offset = vector(0, -20)
+
+    def draw(self, offset):
+        pos = self.rect.topleft
+        self.display_surface.blit(self.image, pos + offset)
+
+
+    
 class House(Sprite):
     def __init__(self, pos, image, group, faction):
         super().__init__(pos, image, group)
@@ -18,6 +35,14 @@ class House(Sprite):
         self.hitbox = self.rect
         self.regeneration_cooldown = Cooldown(10)
     
+    def update_data(self, house_data):
+        # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }
+        self.pos = vector(house_data['position'])
+        self.healthbar.current_health = house_data['health']
+        self.is_visible = house_data['visible']
+
+
+
     def take_damage(self, damage):
         if self.is_visible:
             self.healthbar.current_health -= damage

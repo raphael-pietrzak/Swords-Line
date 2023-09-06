@@ -26,6 +26,9 @@ class Client:
         with self.lock:
             self.server_data = json.loads(self.socket.recv(BUFFER_SIZE).decode())
 
+        self.receive_thread = threading.Thread(target=self.receive)
+        self.receive_thread.start()
+
     def get_server_data(self):
         with self.lock:
             return self.server_data

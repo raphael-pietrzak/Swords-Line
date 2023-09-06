@@ -13,7 +13,7 @@ WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 800
 PLAYER_SPEED = 1
 
-
+ 
 
 EDITOR_DATA = {
     1 : {'type' : 'decoration', 'name' : 'dead', 'grid' : (7, 2), 'path' : 'graphics/Dead_and_Fire/Dead/Dead.png'},

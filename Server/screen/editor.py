@@ -45,6 +45,8 @@ class Editor:
         self.generate_map()
         self.server = Server()
 
+        self.tree_sent = False
+
 
         
     def generate_map(self):
@@ -212,39 +214,40 @@ class Editor:
         server_data = {}
         server_data['players'] = []
         server_data['trees'] = []
+        server_data['houses'] = []
 
         for player in self.player_sprites:
             server_data['players'].append(player.json_data)
         
         for tree in self.trees_sprites:
+            self.tree_sent = True
             server_data['trees'].append(tree.get_json_data())
         
+        for house in self.houses_sprites:
+            server_data['houses'].append(house.get_json_data())
+    
         return server_data
     
 
-    def print_clients_data(self):
+    def handle_clients_data(self):
         client_data = self.server.get_clients_data()
         for adress, data in client_data.items():
             print(f"{adress} : {data}")
+        data = self.get_json_game_data()
+        clients = self.server.get_clients()
+        for client in clients:
+            self.server.send(data, client)
 
     def update(self, dt):
         self.event_loop() 
         self.check_collision()
         self.all_sprites.update(dt)
 
-        self.print_clients_data()
-        data = self.get_json_game_data()
-        clients = self.server.get_clients()
-        for client in clients:
-            self.server.send(data, client)
+        self.handle_clients_data()
         
-
-
 
         self.player1.move(self.inputs)
         self.player2.move(self.inputs_2)
-
-
 
         # draw
         self.display_surface.fill('beige')
