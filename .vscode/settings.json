@@ -1,0 +1,32 @@
+{
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#907946",
+        "activityBar.foreground": "#ffffff",
+        "titleBar.activeBackground": "#000000",
+        "titleBar.activeForeground": "#000000"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/__pycache__": true,
+        "graphics": true,
+        ".vscode": true,
+        "classes": true,
+        "menu": true,
+        "tests/clientApp.py": true,
+        "tests": true,
+        "network/tcp_server.py": true
+    },
+    "hide-files.files": [
+        "graphics",
+        ".vscode",
+        "classes",
+        "menu",
+        "tests/clientApp.py",
+        "tests"
+    ]
+}
