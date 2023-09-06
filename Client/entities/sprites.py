@@ -59,7 +59,7 @@ class Animated(pygame.sprite.Sprite):
 class Tree(Animated):
     unique_id = 0
 
-    def __init__(self, pos, frames, group, tree_dict):
+    def __init__(self, pos, frames, group):
         super().__init__(pos, frames, group)
         midtop = self.rect.midtop
         self.alive_frames = frames
@@ -67,11 +67,6 @@ class Tree(Animated):
         self.status = 'idle'
         self.ressources = ['Pinecone', 'Twigs', 'Log']
         self.hitbox = pygame.Rect(0, 0, 20, 50)
-
-        self.id = Tree.unique_id
-        Tree.unique_id += 1
-
-        tree_dict[self.id] = self
 
     
     def burn(self):

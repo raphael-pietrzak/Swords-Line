@@ -63,6 +63,8 @@ class Editor:
         Animated((200, 400), self.animations['fire'], self.all_sprites)
 
 
+
+
     def thread_init(self):
         self.player1 = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
 
@@ -212,14 +214,10 @@ class Editor:
         server_data['trees'] = []
 
         for player in self.player_sprites:
-            if player.client_update_required:
-                server_data['players'].append(player.json_data)
-                player.client_update_required = False
+            server_data['players'].append(player.json_data)
         
         for tree in self.trees_sprites:
-            if tree.client_update_required:
-                server_data['trees'].append(tree.get_json_data())
-                tree.client_update_required = False
+            server_data['trees'].append(tree.get_json_data())
         
         return server_data
     
@@ -235,6 +233,10 @@ class Editor:
         self.all_sprites.update(dt)
 
         self.print_clients_data()
+        data = self.get_json_game_data()
+        clients = self.server.get_clients()
+        for client in clients:
+            self.server.send(data, client)
         
 
 
@@ -246,7 +248,7 @@ class Editor:
 
         # draw
         self.display_surface.fill('beige')
-        self.all_sprites.custom_draw((0, 0))
+        self.all_sprites.custom_draw(self.player1.rect.center)
 
 
 

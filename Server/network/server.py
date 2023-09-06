@@ -1,11 +1,13 @@
 import json, socket, threading
 from classes.settings import *
 
+# DATA must be formated as JSON
+
 
 class Server:
     def __init__(self):
         self.clients_data = {}
-        self.clients = []
+        self.clients = set()
 
         self.lock = threading.Lock()
         self.start()
@@ -30,10 +32,15 @@ class Server:
             
             with self.lock:
                 self.clients_data[address] = message
+                self.clients.add(address)
     
     def get_clients_data(self):
         with self.lock:
             return self.clients_data
+    
+    def get_clients(self):
+        with self.lock:
+            return list(self.clients)
 
 
 

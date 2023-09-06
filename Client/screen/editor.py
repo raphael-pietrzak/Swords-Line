@@ -53,13 +53,21 @@ class Editor:
         if keys[pygame.K_RMETA] and not self.inputs:
             self.inputs.append("attack")
         
-
+    def handle_communication(self):
+        self.client.send(self.inputs)
+        data = self.client.get_server_data()
+        trees = data['trees']
+        for tree in trees:
+            self.display_surface.blit(self.graphics['tree'][0], tree['position'])
+            
+            
       
 
     def update(self, dt):
         self.event_loop()
-        self.client.send(self.inputs)
         self.all_sprites.update(dt)
-
+        
         self.display_surface.fill('aquamarine3')
+        self.handle_communication()
+
         self.all_sprites.custom_draw((0, 0))
