@@ -1,7 +1,7 @@
 import threading
 import pygame, sys, math
 from pygame import Vector2 as vector
-from random import randint
+from random import choice, randint
 
 from classes.settings import *
 
@@ -27,8 +27,8 @@ class Editor:
         self.all_sprites = CameraGroup()
         self.player_sprites = pygame.sprite.Group()
         self.trees_sprites = pygame.sprite.Group()
-        self.resources_sprites = pygame.sprite.Group()
         self.houses_sprites = pygame.sprite.Group()
+        self.clients = {}
 
         # animations
         self.animations = Graphics().animations
@@ -59,16 +59,11 @@ class Editor:
         self.knight_house = House((0, 0), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
         self.goblin_house = House((300, 300), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
-        self.player2 = Gobelin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
-        self.thread_init()
 
         Animated((200, 400), self.animations['fire'], self.all_sprites)
 
 
 
-
-    def thread_init(self):
-        self.player1 = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
 
 
 
@@ -172,8 +167,6 @@ class Editor:
             collision_sprites = pygame.sprite.spritecollide(player, self.all_sprites, False, pygame.sprite.collide_mask)
             for sprite in collision_sprites:
                 if sprite != player:
-                    if sprite in self.resources_sprites:
-                        self.handle_collected_resources(sprite)
                     if sprite in self.houses_sprites and sprite.faction == player.faction and not sprite.regeneration_cooldown.active:
                         sprite.regeneration_cooldown.activate()
                         self.regenerate_player(player, self.knight_house)
@@ -203,7 +196,7 @@ class Editor:
             return True
         return False
     
-    def get_json_game_data(self):
+    def get_json_game_data(self, client_id):
         # {                                        # !     FORMAT JSON
         #   "players": [
         #     { "id": 1, "faction": "knight", "position": [200, 300], "health": 100, status": "idle", direction": "right" },
@@ -215,28 +208,46 @@ class Editor:
         server_data['players'] = []
         server_data['trees'] = []
         server_data['houses'] = []
+        server_data['id'] = 0
+
+        server_data['id'] = self.clients[client_id].id
+        faction = self.clients[client_id].faction
 
         for player in self.player_sprites:
-            server_data['players'].append(player.json_data)
+            player_data = player.get_json_data()
+            if player_data:
+                server_data['players'].append(player_data)
         
         for tree in self.trees_sprites:
             self.tree_sent = True
             server_data['trees'].append(tree.get_json_data())
         
         for house in self.houses_sprites:
-            server_data['houses'].append(house.get_json_data())
+            server_data['houses'].append(house.get_json_data(faction))
+        
+
     
         return server_data
     
 
     def handle_clients_data(self):
-        client_data = self.server.get_clients_data()
-        for adress, data in client_data.items():
-            print(f"{adress} : {data}")
-        data = self.get_json_game_data()
+
         clients = self.server.get_clients()
-        for client in clients:
-            self.server.send(data, client)
+        for client_id, client in clients.items():
+            if client_id not in self.clients:
+                faction = choice(['knight', 'goblin'])
+                match faction:
+                    case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
+                    case 'goblin': player = Gobelin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+                    
+                self.clients[client_id] = player
+            
+            inputs = client.message['inputs']
+            self.clients[client_id].move(inputs)
+            data = self.get_json_game_data(client_id)
+            self.server.send(data, client.address)
+
+
 
     def update(self, dt):
         self.event_loop() 
@@ -244,14 +255,10 @@ class Editor:
         self.all_sprites.update(dt)
 
         self.handle_clients_data()
-        
-
-        self.player1.move(self.inputs)
-        self.player2.move(self.inputs_2)
 
         # draw
         self.display_surface.fill('beige')
-        self.all_sprites.custom_draw(self.player1.rect.center)
+        self.all_sprites.custom_draw((0, 0))
 
 
 

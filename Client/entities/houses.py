@@ -39,18 +39,15 @@ class House(Sprite):
         # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }
         self.pos = vector(house_data['position'])
         self.healthbar.current_health = house_data['health']
+        self.is_ghost = house_data['ghost']
         self.is_visible = house_data['visible']
 
 
 
-    def take_damage(self, damage):
-        if self.is_visible:
-            self.healthbar.current_health -= damage
-            if self.healthbar.current_health <= 0:
-                self.kill()
-
     
     def draw(self, offset):
+        if not self.is_visible and not self.is_ghost: return
+
         self.regeneration_cooldown.update()
         pos = self.pos + offset
         self.house_surface.blit(self.image, (0, 0))  
@@ -66,6 +63,6 @@ class House(Sprite):
         #     self.house_surface.set_colorkey('white')
         
       
-        self.house_surface.set_alpha(255) if self.is_visible else self.house_surface.set_alpha(80)
+        self.house_surface.set_alpha(255) if self.is_ghost else self.house_surface.set_alpha(80)
 
         self.display_surface.blit(self.house_surface, pos)

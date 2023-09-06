@@ -13,7 +13,7 @@ class House(Sprite):
         # self.house_surface.set_alpha(30)
         self.healing_amount = 5
         self.radius = 100
-        self.is_visible = True
+        self.is_visible = False
         self.faction = faction
         self.healthbar =  HealthBar(pos, 'red')
         self.hitbox = self.rect
@@ -27,14 +27,16 @@ class House(Sprite):
             if self.healthbar.current_health <= 0:
                 self.kill()
     
-    def get_json_data(self):
+    def get_json_data(self, faction):
         # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }
         json_data = {}
         json_data['id'] = self.id
         json_data['faction'] = self.faction
         json_data['position'] = [int(self.pos.x), int(self.pos.y)]
         json_data['health'] = self.healthbar.current_health
-        json_data['visible'] = self.is_visible
+        json_data['ghost'] = self.is_visible
+        json_data['visible'] = True if faction == self.faction else False
+
         return json_data
 
     

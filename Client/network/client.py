@@ -1,6 +1,7 @@
 
 
 import socket, json, pygame, sys, threading
+import uuid
 import time
 from classes.settings import *
 
@@ -11,6 +12,7 @@ class Client:
         self.server_data = None
         self.lock = threading.Lock()
         self.start()
+        self.id = uuid.uuid4()
 
     def start(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

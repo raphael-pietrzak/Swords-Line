@@ -50,11 +50,13 @@ class Editor:
             self.inputs.append("attack")
         
     def handle_communication(self):
-        self.client.send(self.inputs)
+        self.client.send({'inputs': self.inputs, 'id': str(self.client.id)})
         data = self.client.get_server_data()
         trees = data['trees']
         players = data['players']
         houses = data['houses']
+        self.id = data['id']
+        self.faction = data['players'][self.id]['faction']
 
         for tree in trees:
             if tree['id'] in self.trees:
@@ -74,6 +76,8 @@ class Editor:
                         
                 self.players[player['id']] = Player(player['position'], graphics, self.all_sprites)
                 self.players[player['id']].update_data(player)
+
+
             
         for house in houses:
             if house['id'] in self.houses:
@@ -93,4 +97,4 @@ class Editor:
         self.display_surface.fill('aquamarine3')
         self.handle_communication()
 
-        self.all_sprites.custom_draw((0, 0))
+        self.all_sprites.custom_draw(self.players[self.id].rect.center)
