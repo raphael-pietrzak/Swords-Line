@@ -1,8 +1,7 @@
 
 
 # server
-HOST = '0.0.0.0'
-SERVER_IP = '127.0.0.1'
+HOST = '192.168.1.20'
 PORT = 12345  
 BUFFER_SIZE = 4096
 
