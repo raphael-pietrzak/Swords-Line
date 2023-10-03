@@ -1,7 +1,5 @@
-SERVER_IP = '127.0.0.1'  # Localhost
+SERVER_IP = '86.210.13.172'  # Localhost
 SERVER_PORT = 12345     # Port
-HOST = '0.0.0.0'
-PORT = 12345
 BUFFER_SIZE = 8192
 
 
