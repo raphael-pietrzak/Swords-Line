@@ -1,18 +1,16 @@
 
-
-# server
-HOST = '192.168.1.20'
-PORT = 12345  
-BUFFER_SIZE = 4096
-
-
-# editor
 ANIMATION_SPEED = 10
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 800
-PLAYER_SPEED = 1
 
- 
+HOST = "192.168.1.20"
+SERVER_IP = "86.210.13.172"
+UDP_PORT = 12345
+TCP_PORT = 54321
+
+WINDOW_WIDTH = 1200
+WINDOW_HEIGHT = 700
+
+BUFFER_SIZE = 1024
+ENCODING = 'utf-8'
 
 EDITOR_DATA = {
     1 : {'type' : 'decoration', 'name' : 'dead', 'grid' : (7, 2), 'path' : 'graphics/Dead_and_Fire/Dead/Dead.png'},

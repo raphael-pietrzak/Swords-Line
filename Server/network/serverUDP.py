@@ -2,7 +2,7 @@ import json
 import socket
 import threading
 import time
-from Network.Server.client import Client
+from network.client import Client
 from ping import FPSCounter
 from settings import *
 

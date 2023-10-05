@@ -1,5 +1,5 @@
-from Network.Server.serverTCP import TCPServer
-from Network.Server.serverUDP import UDPServer
+from network.serverTCP import TCPServer
+from network.serverUDP import UDPServer
 
 
 class Server:

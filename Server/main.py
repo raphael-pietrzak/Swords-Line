@@ -2,14 +2,13 @@ import pygame
 from screen.home import GameMenu
 from classes.settings import *
 from screen.editor import Editor
-from network.server import Server
 
 class Main:
     def __init__(self):
         pygame.init()
 
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        pygame.display.set_caption("SERVER CONSOLE")
+        pygame.display.set_caption("SERVER")
 
         self.clock = pygame.time.Clock()
         self.menu = GameMenu(self.switch_screen)

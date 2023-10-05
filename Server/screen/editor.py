@@ -1,51 +1,38 @@
-import threading
-import pygame, sys, math
+import pygame, sys
 from pygame import Vector2 as vector
 from random import choice, randint
 
 from classes.settings import *
-
 from classes.imports import Graphics
 from classes.camera import CameraGroup
-from menu.menu_items import MenuItemsGroup
 from entities.player import Gobelin, Knight
-from entities.sprites import Tree, Animated, Resource, Sprite
+from entities.sprites import Tree, Animated
 from entities.houses import House
 from network.server import Server
+from ping import FPSCounter
 
-from menu.menu import Sign
 
 class Editor:
     def __init__(self, switch):
+
+        
         # main setup
         self.display_surface = pygame.display.get_surface()
         self.switch_screen = switch
-        self.inputs = []
-        self.inputs_2 = []
+        self.server = Server()
+        self.fps_counter = FPSCounter('MAIN')
 
         # groups
         self.all_sprites = CameraGroup()
         self.player_sprites = pygame.sprite.Group()
         self.trees_sprites = pygame.sprite.Group()
         self.houses_sprites = pygame.sprite.Group()
-        self.clients = {}
 
         # animations
         self.animations = Graphics().animations
 
-        # ressources
-        self.collected_resources = {
-            "log": 0,
-            "gold": 0,
-            "twigs": 0,
-            "pinecone": 0
-        }
-
         # map
         self.generate_map()
-        self.server = Server()
-
-        self.tree_sent = False
 
 
         
@@ -54,12 +41,9 @@ class Editor:
         for i in range(100):
             Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], [self.all_sprites, self.trees_sprites])
         
-        # for i in range(100):
-        #     Gobelin((randint(-900, 900), randint(-900, 900)), self.animations['goblin'], [self.all_sprites, self.player_sprites])
         self.knight_house = House((0, 0), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
         self.goblin_house = House((300, 300), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
-
         Animated((200, 400), self.animations['fire'], self.all_sprites)
 
 
@@ -71,62 +55,28 @@ class Editor:
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.server.stop()
+                print("[ EVENT ] : Window closed")
+                self.server.close()
                 pygame.quit()
                 sys.exit()
+        
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    print('[ EVENT ] : Return pressed')
+                    self.server.send('Server Pressed Return', 'TCP')
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.server.stop()
                     self.switch_screen("menu")
-            
-            self.get_keyboard_inputs_player_2()
-            self.get_keyboard_inputs()
 
             self.get_winner()
-    
-
-    def get_keyboard_inputs(self):
-        keys = pygame.key.get_pressed()
-
-        self.inputs = []
-
-        if keys[pygame.K_LEFT]:
-            self.inputs.append("left")
-        if keys[pygame.K_RIGHT]:
-            self.inputs.append("right")
-        if keys[pygame.K_UP]:
-            self.inputs.append("up")
-        if keys[pygame.K_DOWN]:
-            self.inputs.append("down")
-        if keys[pygame.K_RMETA] and not self.inputs:
-            self.inputs.append("attack")
 
 
-    def get_keyboard_inputs_player_2(self):
-        keys = pygame.key.get_pressed()
-
-        self.inputs_2 = []
-
-        if keys[pygame.K_s]:
-            self.inputs_2.append("left")
-        if keys[pygame.K_f]:
-            self.inputs_2.append("right")
-        if keys[pygame.K_e]:
-            self.inputs_2.append("up")
-        if keys[pygame.K_d]:
-            self.inputs_2.append("down")
-        if keys[pygame.K_LMETA] and not self.inputs:
-            self.inputs_2.append("attack")
-
-
-    def handle_collected_resources(self, sprite):
-        if sprite.resource_type in self.collected_resources:
-            self.collected_resources[sprite.resource_type] += 1
-        sprite.pick_up()
 
     def regenerate_player(self, player, house):
         player.regenerate(house.healing_amount)
+
 
     def update_house_visibility(self, player, player_houses):
         for house in player_houses:
@@ -175,11 +125,6 @@ class Editor:
             self.update_house_visibility(player, player_houses)
 
 
-    def new_player(self, player_id):
-        player = Gobelin((0, 0), self.animations['goblin'], [self.all_sprites, self.player_sprites])
-        player.id = player_id
-        return player
-
     def get_winner(self):
         if self.is_one_faction_remaining():
             text = "YOU WIN"
@@ -196,42 +141,9 @@ class Editor:
             return True
         return False
     
-    def get_json_game_data(self, client_id):
-        # {                                        # !     FORMAT JSON
-        #   "players": [
-        #     { "id": 1, "faction": "knight", "position": [200, 300], "health": 100, status": "idle", direction": "right" },
-        #     { "id": 2, "faction": "goblin", "position": [400, 250] , "health": 100, status": "idle", direction": "right" }
-        #   ],
-        # }
-
-        server_data = {}
-        server_data['players'] = []
-        server_data['trees'] = []
-        server_data['houses'] = []
-        server_data['id'] = 0
-
-        server_data['id'] = self.clients[client_id].id
-        faction = self.clients[client_id].faction
-
-        for player in self.player_sprites:
-            player_data = player.get_json_data()
-            if player_data:
-                server_data['players'].append(player_data)
-        
-        for tree in self.trees_sprites:
-            self.tree_sent = True
-            server_data['trees'].append(tree.get_json_data())
-        
-        for house in self.houses_sprites:
-            server_data['houses'].append(house.get_json_data(faction))
-        
-
-    
-        return server_data
     
 
     def handle_clients_data(self):
-
         clients = self.server.get_clients()
         for client_id, client in clients.items():
             if client_id not in self.clients:
@@ -251,18 +163,37 @@ class Editor:
 
     def update(self, dt):
         self.event_loop() 
-        self.check_collision()
-        self.all_sprites.update(dt)
-
-        self.handle_clients_data()
 
         # draw
         self.display_surface.fill('beige')
+        self.send_server_data()
+        self.all_sprites.update(dt)
         self.all_sprites.custom_draw((0, 0))
 
 
+        self.fps_counter.ping()
 
+
+
+
+    def send_server_data(self):
+        clients = self.server.receive('UDP')
+
+        message = {}
+
+        for player in self.player_sprites:
+            if player not in clients:
+                self.player_sprites.remove(player)
+                self.all_sprites.remove(player)
+
+        for uuid, client in clients.items():
+            player = client.player
+            if player not in self.player_sprites:
+                self.player_sprites.add(player)
+                self.all_sprites.add(player)
+
+            message[uuid] = {'pos' : client.player.get_position(), 'color' : client.player.color}
+        
+        self.server.send(message, 'UDP')
 
         
-
-

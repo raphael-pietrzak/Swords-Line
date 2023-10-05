@@ -2,7 +2,7 @@ import json
 import socket
 import threading
 import time
-from Network.Server.client import Client
+from network.client import Client
 
 from settings import *
 
@@ -67,6 +67,7 @@ class ClientHandler(threading.Thread):
     def __init__(self, client_socket, adress, server):
         super().__init__()
         self.is_running = True
+        self.client = None
         self.uuid = None
         self.client_data = {}
         self.client_socket = client_socket
@@ -88,25 +89,23 @@ class ClientHandler(threading.Thread):
                        
 
                 except TimeoutError:
-                    if self.uuid in self.server.clients:
-                        timeout = self.server.clients[self.uuid].check_timout()
-                        if timeout:
-                            self.close()
+                    if self.client and self.client.check_timout():
+                        self.close()
                     continue
 
             self.close()
 
     def update_client(self):
         self.uuid = list(self.client_data.keys())[0]
-        client = self.server.clients.get(self.uuid)
+        self.client = self.server.clients.get(self.uuid)
 
-        if not client:
+        if not self.client:
             print("Création TCP client")
-            client = Client()
-            self.server.clients[self.uuid] = client
+            self.client = Client(self.uuid)
+            self.server.clients[self.uuid] = self.client
         
         if self.client_data:
-            client.update_player(self.client_data[self.uuid], 'TCP')
+            self.client.update_player(self.client_data[self.uuid], 'TCP')
 
 
     
