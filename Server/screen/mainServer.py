@@ -3,7 +3,7 @@ from settings import *
 import sys, pygame
 
 from network.server import Server
-from ping import FPSCounter
+from classes.ping import FPSCounter
 
 
 

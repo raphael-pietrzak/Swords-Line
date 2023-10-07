@@ -5,17 +5,15 @@ from random import choice, randint
 from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
-from entities.player import Gobelin, Knight
+from entities.player import Gobelin, Knight, Player
 from entities.sprites import Tree, Animated
 from entities.houses import House
 from network.server import Server
-from ping import FPSCounter
+from classes.ping import FPSCounter
 
 
 class Editor:
     def __init__(self, switch):
-
-        
         # main setup
         self.display_surface = pygame.display.get_surface()
         self.switch_screen = switch
@@ -24,9 +22,10 @@ class Editor:
 
         # groups
         self.all_sprites = CameraGroup()
-        self.player_sprites = pygame.sprite.Group()
+        self.player_sprites = CameraGroup()
         self.trees_sprites = pygame.sprite.Group()
         self.houses_sprites = pygame.sprite.Group()
+        self.players = {}
 
         # animations
         self.animations = Graphics().animations
@@ -45,11 +44,6 @@ class Editor:
         self.goblin_house = House((300, 300), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
         Animated((200, 400), self.animations['fire'], self.all_sprites)
-
-
-
-
-
 
     # events
     def event_loop(self):
@@ -70,7 +64,7 @@ class Editor:
                     self.server.stop()
                     self.switch_screen("menu")
 
-            self.get_winner()
+            # self.get_winner()
 
 
 
@@ -161,14 +155,20 @@ class Editor:
 
 
 
+
+
+
     def update(self, dt):
         self.event_loop() 
 
         # draw
         self.display_surface.fill('beige')
-        self.send_server_data()
-        self.all_sprites.update(dt)
-        self.all_sprites.custom_draw((0, 0))
+        self.update_players_from_server()
+        self.player_sprites.update(dt)
+        self.player_sprites.custom_draw((0, 0))
+
+        # self.all_sprites.update(dt)
+        # self.all_sprites.custom_draw((0, 0))
 
 
         self.fps_counter.ping()
@@ -176,24 +176,29 @@ class Editor:
 
 
 
-    def send_server_data(self):
-        clients = self.server.receive('UDP')
+    def update_players_from_server(self):
+        # Utilisation conseillée :
+        new_players = self.server.get_new_clients()
+        for uuid in new_players:
+            player = Gobelin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+            self.players[uuid] = player
+            
 
-        message = {}
+        del_players = self.server.get_del_clients()
+        for uuid in del_players:
+            player = self.players.get(uuid)
+            if not player: break
+            self.player_sprites.remove(player)
+            self.all_sprites.remove(player)
+            del self.players[uuid]
 
-        for player in self.player_sprites:
-            if player not in clients:
-                self.player_sprites.remove(player)
-                self.all_sprites.remove(player)
-
-        for uuid, client in clients.items():
-            player = client.player
-            if player not in self.player_sprites:
-                self.player_sprites.add(player)
-                self.all_sprites.add(player)
-
-            message[uuid] = {'pos' : client.player.get_position(), 'color' : client.player.color}
+        clients_data = self.server.receive('UDP')
+        for uuid, data in clients_data.items():
+            player = self.players.get(uuid)
+            if not player: continue
+            player.inputs = data['inputs']
         
+        message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
         self.server.send(message, 'UDP')
 
         

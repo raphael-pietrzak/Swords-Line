@@ -1,3 +1,4 @@
+from random import randint
 import time
 import uuid
 import pygame
@@ -26,6 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.gold_count = 0
         self.group = group
+        self.color =  (randint(0, 255), randint(0, 255), randint(0, 255))
 
 
         self.hitbox = pygame.Rect(0, 0, 40, 64)
@@ -64,6 +66,10 @@ class Player(pygame.sprite.Sprite):
 
         self.client_update_required = False
         self.json_data = {}
+        self.inputs = []
+    
+    def get_position(self):
+        return [int(self.pos.x), int(self.pos.y)]
 
 
     def animate(self, dt):
@@ -89,33 +95,32 @@ class Player(pygame.sprite.Sprite):
 
 
 
-
-    def move(self, inputs):
+    def move(self):
         current_time = time.time()
         time_elapsed = current_time - self.last_update_time
         self.last_update_time = current_time
-        
+
         self.status = "run" 
 
-        if 'right' in inputs:
-            self.pos.x += self.speed * time_elapsed
-            self.direction = "right"
-        if 'left' in inputs:
+
+        if 'up' in self.inputs:
+            self.pos.y -= self.speed * time_elapsed
+        if 'down' in self.inputs:
+            self.pos.y += self.speed * time_elapsed
+        if 'left' in self.inputs:
             self.pos.x -= self.speed * time_elapsed
             self.direction = "left"
-        if 'up' in inputs:
-            self.pos.y -= self.speed * time_elapsed
-        if 'down' in inputs:
-            self.pos.y += self.speed * time_elapsed
-        if 'attack' in inputs:
+        if 'right' in self.inputs:
+            self.pos.x += self.speed * time_elapsed
+            self.direction = "right"
+        if 'attack' in self.inputs:
             self.status = "attack"
         
-        if not inputs:
+        if not self.inputs:
             self.status = "idle"
         
         self.rect.center = self.pos
         self.mask = pygame.mask.from_surface(self.image)
-    
 
     
     def regenerate(self, health):
@@ -153,19 +158,98 @@ class Player(pygame.sprite.Sprite):
         # pygame.draw.rect(self.display_surface, 'purple', sword_offset_rect)
         # pygame.draw.rect(self.display_surface, 'red', hitbox_offset_rect)
     
-    def update_json(self):
-        json_data = self.get_json_data()
-        if json_data != self.json_data:
-            self.client_update_required = True
-            self.json_data = json_data
+
         
 
     def update(self, dt):
+        self.move()
         self.rect.center = self.pos
         self.damage_cooldown.update()
         self.animate(dt)
-        self.update_json()
         
+
+
+
+
+
+
+
+# from random import randint
+# import time, pygame
+
+# from pygame import Vector2 as vector
+
+# from  classes.settings import *
+
+
+
+# class Player(pygame.sprite.Sprite):
+#     def __init__(self, group, frames):
+#         super().__init__()
+#         self.display_surface = pygame.display.get_surface()
+#         self.ground_offset = vector(0, 0)
+#         self.image = pygame.Surface((40, 40))
+#         self.rect = self.image.get_rect()
+
+#         self.index = 0
+#         self.frames = frames
+
+
+#         self.color =  (randint(0, 255), randint(0, 255), randint(0, 255))
+#         self.image.fill(self.color)
+#         self.pos = vector((randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
+#         self.speed = 400
+#         self.last_update_time = time.time()
+#         self.inputs = []
+    
+#     def animate(self, dt):
+#         self.index += dt * ANIMATION_SPEED
+#         if self.index >= len(self.frames):
+#             self.index = 0
+
+#         self.image = self.frames[int(self.index)]
+#         self.mask = pygame.mask.from_surface(self.image)
+
+
+#     def move(self):
+#         current_time = time.time()
+#         time_elapsed = current_time - self.last_update_time
+#         self.last_update_time = current_time
+
+#         if 'up' in self.inputs:
+#             self.pos.y -= self.speed * time_elapsed
+#         if 'down' in self.inputs:
+#             self.pos.y += self.speed * time_elapsed
+#         if 'left' in self.inputs:
+#             self.pos.x -= self.speed * time_elapsed
+#         if 'right' in self.inputs:
+#             self.pos.x += self.speed * time_elapsed
+
+
+#     def regenerate(self, health):
+#         self.healthbar.current_health += health
+#         self.healthbar.current_health = min(self.healthbar.current_health, self.healthbar.max_width)
+    
+#     def take_damage(self, damage):
+#         self.healthbar.current_health -= damage
+#         if self.healthbar.current_health <= 0:
+#             DeadHead(self.pos, self.group[0])
+#             self.__init__(self.respawn_point, self.frames, self.group) if self.respawn_point else self.kill()
+    
+#     def get_position(self):
+#         return [int(self.pos.x), int(self.pos.y)]
+
+
+#     def draw(self, offset):
+        
+#         pygame.draw.rect(self.display_surface, self.color, (self.pos.x, self.pos.y, 40, 40))
+
+
+
+#     def update(self, dt):
+#         self.move()
+
+
 
 
 
@@ -182,5 +266,3 @@ class Knight(Player):
         super().__init__(pos, frames, group)
         self.faction = 'Knight'
         self.healthbar.current_health = 20
-
-

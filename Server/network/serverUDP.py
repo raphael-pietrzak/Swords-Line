@@ -1,17 +1,12 @@
-import json
-import socket
-import threading
-import time
-from network.client import Client
-from ping import FPSCounter
-from settings import *
+import json, socket, threading
+from classes.ping import FPSCounter
+from classes.settings import *
 
 
 
 class UDPServer(threading.Thread):
-    def __init__(self, clients):
+    def __init__(self):
         super().__init__()
-        self.clients = clients
         self.is_running = True
 
         self.client_data = {}
@@ -28,34 +23,27 @@ class UDPServer(threading.Thread):
     def run(self):
         while self.is_running:
             try:
-                data, addr = self.server_socket.recvfrom(1024)
-                self.client_data = json.loads(data.decode(ENCODING)) 
-                if not self.client_data: continue
+                data, addr = self.server_socket.recvfrom(BUFFER_SIZE)
+                data = json.loads(data.decode(ENCODING)) 
+                if not data: continue
 
-                self.update_client()
+                uuid = data['uuid']
+                message = data['message']
+                self.client_data[uuid] = message
+
+
                 self.server_socket.sendto(json.dumps(self.server_data).encode(ENCODING), addr)
-
 
                 self.network_fps_counter.ping()
 
             except Exception as e:
-                print(f'Error UDP server send/receive : {e}')
-                print(data.decode(ENCODING))
+                print(f'########   Error UDP server : {e}   ########')
                 continue
-            
+        
+        print('Thread UDP server terminated')
 
-    def update_client(self):
-        uuid = list(self.client_data.keys())[0]
-        client = self.clients.get(uuid)
-        if not client:
-            return
-
-        if self.client_data:
-            client.update_player(self.client_data[uuid], 'UDP')
     
 
     def close(self):
         self.is_running = False
         self.server_socket.close()
-
-

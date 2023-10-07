@@ -6,7 +6,7 @@ import time, pygame
 
 from pygame import Vector2 as vector
 
-from  settings import *
+from  classes.settings import *
 
 
 
@@ -45,7 +45,6 @@ class Player(pygame.sprite.Sprite):
 
 
     def draw(self, offset):
-        
         pygame.draw.rect(self.display_surface, self.color, (self.pos.x, self.pos.y, 40, 40))
 
 

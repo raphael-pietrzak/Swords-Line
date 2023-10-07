@@ -1,17 +1,14 @@
-import json
-import socket
-import threading
-import time
-from network.client import Client
-
-from settings import *
+import json, socket, threading, time
+from classes.settings import *
 
 
 class TCPServer(threading.Thread):
-    def __init__(self, clients):
+    def __init__(self, del_udp_client):
         super().__init__()
-        self.client_handlers = [] 
-        self.clients = clients
+        self.del_udp_client = del_udp_client
+        self.clients = []
+        self.new_clients = []
+        self.del_clients = []
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -37,76 +34,67 @@ class TCPServer(threading.Thread):
         try:
             while True:
                 client_socket, adress = self.server_socket.accept()
+                client_socket.settimeout(1.0)
                 print("Nouvelle connexion établie :", adress)
 
-                client_handler = ClientHandler(client_socket, adress, self)
+                init_data = client_socket.recv(BUFFER_SIZE)
+                init_data = json.loads(init_data.decode(ENCODING))
+                print(init_data)
+                uuid = init_data['uuid']
+
+                client_handler = ClientHandler(client_socket, adress, self, uuid)
                 client_handler.start()
-                self.client_handlers.append(client_handler)
+                self.clients.append(client_handler)
+                self.new_clients.append(uuid)
+
         except ConnectionAbortedError:
             self.close()
     
+    def get_clients_data(self):
+        clients_data = {}
+        for client in self.clients:
+            clients_data[client.uuid] = client.client_data
+        return clients_data
+    
     def send(self, message):
-        for client in self.client_handlers:
+        for client in self.clients:
             client.send(message)
 
-    def remove_client(self, client):
-        if client in self.client_handlers:
-            self.client_handlers.remove(client)
-            self.clients.pop(client.uuid)
-            print(f"Client {client.adress} déconnecté")
-
-
     def close(self):
-        for client in self.client_handlers:
+        for client in self.clients:
             client.close()
         self.server_socket.close()
 
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, client_socket, adress, server):
+    def __init__(self, client_socket, adress, server, uuid):
         super().__init__()
-        self.is_running = True
-        self.client = None
-        self.uuid = None
-        self.client_data = {}
         self.client_socket = client_socket
         self.client_socket.settimeout(1.0)
-        self.adress = adress
         self.server = server
+        self.adress = adress
+        self.is_running = True
+
+        self.uuid = uuid
+        self.client_data = {}
 
     def run(self):
-            while self.is_running:
-                try:
-                    data = self.client_socket.recv(1024)
-                    if not data: break 
-                    # DEBUG
-                    print(f"Reçu du client {self.adress}: {data.decode(ENCODING)}")
-                    self.client_data = json.loads(data.decode(ENCODING))
+        while self.is_running:
+            try:
+                data = self.client_socket.recv(BUFFER_SIZE)
+                if not data: break 
+                # DEBUG
+                print(f"Reçu du client {self.adress}: {data.decode(ENCODING)}")
+                self.client_data = json.loads(data.decode(ENCODING))
 
 
-                    self.update_client()
-                       
-
-                except TimeoutError:
-                    if self.client and self.client.check_timout():
-                        self.close()
-                    continue
-
-            self.close()
-
-    def update_client(self):
-        self.uuid = list(self.client_data.keys())[0]
-        self.client = self.server.clients.get(self.uuid)
-
-        if not self.client:
-            print("Création TCP client")
-            self.client = Client(self.uuid)
-            self.server.clients[self.uuid] = self.client
+            except TimeoutError:
+                continue
         
-        if self.client_data:
-            self.client.update_player(self.client_data[self.uuid], 'TCP')
-
+        print('Thread TCP server receive terminated')
+        self.close()
+        
 
     
     def send(self, message):
@@ -115,7 +103,9 @@ class ClientHandler(threading.Thread):
     
     def close(self):
         self.is_running = False
+        self.server.clients.remove(self)
+        self.server.del_clients.append(self.uuid)
+        self.server.del_udp_client(self.uuid)
         self.client_socket.close()
-        self.server.remove_client(self)
-
+        print(f"Client {self.adress} déconnecté")
 
