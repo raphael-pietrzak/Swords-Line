@@ -11,8 +11,6 @@ from classes.time import Cooldown
 
 class Player(pygame.sprite.Sprite):
 
-    unique_id = 0
-
     def __init__(self, pos, frames, group):
         super().__init__(group)
         # main setup
@@ -50,19 +48,17 @@ class Player(pygame.sprite.Sprite):
         }
 
         # health
-        self.healthbar = HealthBar(self.rect.topleft, 'blue')
+        self.healthbar = HealthBar('blue', (self.rect.width // 2, 20))
         self.damage = 10
         self.damage_cooldown = Cooldown(20)
 
         # time
 
         self.last_update_time = time.time()
-        self.speed = 200
+        self.speed = 400
         self.uuid = str(uuid.uuid4())
 
         self.respawn_point = self.pos.copy()
-        self.id = Player.unique_id
-        Player.unique_id += 1
 
         self.client_update_required = False
         self.json_data = {}
@@ -149,8 +145,7 @@ class Player(pygame.sprite.Sprite):
         pos = self.rect.topleft
         self.player_surface.blit(self.image, (0, 0))
         if self.healthbar.current_health < self.healthbar.max_width:
-            self.healthbar.update()
-            self.player_surface.blit(self.healthbar.image, (30, 0))
+            self.healthbar.draw(self.player_surface)
         
         self.display_surface.blit(self.player_surface, pos + offset)
         sword_offset_rect = self.sword_hitbox.copy().move(offset)
@@ -253,10 +248,11 @@ class Player(pygame.sprite.Sprite):
 
 
 
-class Gobelin(Player):
+class Goblin(Player):
     def __init__(self, pos, frames, group):
         super().__init__(pos, frames, group)
         self.faction = 'Goblin'
+        self.healthbar.current_health = 20
 
     def attack_tree(self, tree):
         tree.burn()
@@ -265,4 +261,3 @@ class Knight(Player):
     def __init__(self, pos, frames, group):
         super().__init__(pos, frames, group)
         self.faction = 'Knight'
-        self.healthbar.current_health = 20

@@ -3,59 +3,47 @@ import pygame
 from entities.sprites import Sprite
 from entities.player import HealthBar
 from classes.time import Cooldown
+from pygame import Vector2 as vector
 
-class House(Sprite):
-    unique_id = 0
+
+
+
+class House(pygame.sprite.Sprite):
     def __init__(self, pos, image, group, faction):
-        super().__init__(pos, image, group)
+        super().__init__(group)
         self.display_surface = pygame.display.get_surface()
         self.house_surface = pygame.Surface(image.get_size(), pygame.SRCALPHA)
-        # self.house_surface.set_alpha(30)
+
+        self.pos = vector(pos)
+        self.image = image
+        self.rect = self.image.get_rect(topleft=self.pos)
+        self.ground_offset = vector(0, -20)
+
+
+        # health
+        self.healthbar =  HealthBar('red', self.rect.midtop)
         self.healing_amount = 5
-        self.radius = 100
-        self.is_visible = False
-        self.faction = faction
-        self.healthbar =  HealthBar(pos, 'red')
-        self.hitbox = self.rect
         self.regeneration_cooldown = Cooldown(10)
-        self.id = House.unique_id
-        House.unique_id += 1
+        self.radius = 100
+
+
+        self.faction = faction
+        self.hitbox = self.rect
+        self.is_visible = True
+
     
     def take_damage(self, damage):
         if self.is_visible:
             self.healthbar.current_health -= damage
             if self.healthbar.current_health <= 0:
                 self.kill()
-    
-    def get_json_data(self, faction):
-        # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }
-        json_data = {}
-        json_data['id'] = self.id
-        json_data['faction'] = self.faction
-        json_data['position'] = [int(self.pos.x), int(self.pos.y)]
-        json_data['health'] = self.healthbar.current_health
-        json_data['ghost'] = self.is_visible
-        json_data['visible'] = True if faction == self.faction else False
-
-        return json_data
 
     
     def draw(self, offset):
         self.regeneration_cooldown.update()
-        pos = self.pos + offset
-        self.house_surface.blit(self.image, (0, 0))  
-        self.healthbar.update()
-        self.house_surface.blit(self.healthbar.image, (5, 0))
-
-
-        # if not self.is_visible :
-        #     self.ghost_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
-        #     self.ghost_surface.fill('white')
-        #     self.ghost_surface.set_alpha(100)
-        #     self.house_surface.blit(self.ghost_surface, (0, 0))
-        #     self.house_surface.set_colorkey('white')
-        
+        self.healthbar.draw(self.image)
       
-        self.house_surface.set_alpha(255) if self.is_visible else self.house_surface.set_alpha(80)
-
-        self.display_surface.blit(self.house_surface, pos)
+        self.image.set_alpha(255) if self.is_visible else self.image.set_alpha(80)
+        
+        pos = self.pos + offset
+        self.display_surface.blit(self.image, pos)

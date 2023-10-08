@@ -7,6 +7,7 @@ class CameraGroup(pygame.sprite.Group):
         super().__init__()
         self.offset = vector(0, 0)
         self.display_surface = pygame.display.get_surface()
+        self.hitbox_active = False
     
     def custom_draw(self, position):
         position = vector(position)
@@ -19,9 +20,10 @@ class CameraGroup(pygame.sprite.Group):
         for sprite in sorted_sprites:
             sprite.draw(self.offset)
 
-            # rect = sprite.rect.copy().move(self.offset.x, self.offset.y)
-            # pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect , 2)
-            # pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
+            if self.hitbox_active:
+                rect = sprite.rect.copy().move(self.offset.x, self.offset.y)
+                pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect , 2)
+                pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
 
 
         

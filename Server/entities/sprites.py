@@ -127,30 +127,6 @@ class Tree(Animated):
 
 
 
-class Resource(pygame.sprite.Sprite):
-    def __init__(self, resource_type, pos, image, group):
-        super().__init__(group)
-        self.group = group
-        self.resource_type = resource_type
-        self.display_surface = pygame.display.get_surface()
-        self.pos = vector(pos)
-        self.image = image
-        self.rect = self.image.get_rect(center=self.pos)
-        self.ground_offset = vector(0, 0)
-        self.mask = pygame.mask.from_surface(self.image)
-    
-    def pick_up(self):
-        self.kill()
-
-
-    def draw(self, offset):
-        pos = self.rect.topleft
-        self.display_surface.blit(self.image, pos + offset)
-        
-    
-
-
-
 class Block:
     def __init__(self, pos, size):
         self.pos = vector(pos)

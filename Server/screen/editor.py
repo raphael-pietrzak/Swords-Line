@@ -5,7 +5,7 @@ from random import choice, randint
 from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
-from entities.player import Gobelin, Knight, Player
+from entities.player import Goblin, Knight
 from entities.sprites import Tree, Animated
 from entities.houses import House
 from network.server import Server
@@ -41,7 +41,7 @@ class Editor:
             Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], [self.all_sprites, self.trees_sprites])
         
         self.knight_house = House((0, 0), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
-        self.goblin_house = House((300, 300), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
+        self.goblin_house = House((0, 0), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
         Animated((200, 400), self.animations['fire'], self.all_sprites)
 
@@ -63,6 +63,10 @@ class Editor:
                 if event.key == pygame.K_ESCAPE:
                     self.server.stop()
                     self.switch_screen("menu")
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:
+                    self.all_sprites.hitbox_active = not self.all_sprites.hitbox_active
 
             # self.get_winner()
 
@@ -137,21 +141,6 @@ class Editor:
     
     
 
-    def handle_clients_data(self):
-        clients = self.server.get_clients()
-        for client_id, client in clients.items():
-            if client_id not in self.clients:
-                faction = choice(['knight', 'goblin'])
-                match faction:
-                    case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
-                    case 'goblin': player = Gobelin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
-                    
-                self.clients[client_id] = player
-            
-            inputs = client.message['inputs']
-            self.clients[client_id].move(inputs)
-            data = self.get_json_game_data(client_id)
-            self.server.send(data, client.address)
 
 
 
@@ -164,11 +153,11 @@ class Editor:
         # draw
         self.display_surface.fill('beige')
         self.update_players_from_server()
-        self.player_sprites.update(dt)
-        self.player_sprites.custom_draw((0, 0))
+        # self.player_sprites.update(dt)
+        # self.player_sprites.custom_draw((0, 0))
 
-        # self.all_sprites.update(dt)
-        # self.all_sprites.custom_draw((0, 0))
+        self.all_sprites.update(dt)
+        self.all_sprites.custom_draw((0, 0))
 
 
         self.fps_counter.ping()
@@ -180,7 +169,8 @@ class Editor:
         # Utilisation conseillée :
         new_players = self.server.get_new_clients()
         for uuid in new_players:
-            player = Gobelin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+            print(f'[ NEW PLAYER ] : {uuid}')
+            player = self.generate_player()
             self.players[uuid] = player
             
 
@@ -200,5 +190,13 @@ class Editor:
         
         message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
         self.server.send(message, 'UDP')
+    
+
+    def generate_player(self):
+        faction = choice(['knight', 'goblin'])
+        match faction:
+            case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
+            case 'goblin': player = Goblin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+        return player
 
         
