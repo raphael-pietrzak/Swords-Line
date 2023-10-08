@@ -48,7 +48,8 @@ class Player(pygame.sprite.Sprite):
         }
 
         # health
-        self.healthbar = HealthBar('blue', (self.rect.width // 2, 20))
+        self.healthbar = HealthBar('blue', (self.rect.width // 2, 10))
+        self.healthbar.current_health = 30
         self.damage = 10
         self.damage_cooldown = Cooldown(20)
 

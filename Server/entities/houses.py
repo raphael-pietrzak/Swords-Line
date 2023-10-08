@@ -21,7 +21,8 @@ class House(pygame.sprite.Sprite):
 
 
         # health
-        self.healthbar =  HealthBar('red', self.rect.midtop)
+        self.healthbar =  HealthBar('red', (self.rect.width // 2, 10))
+        self.healthbar.current_health = 30
         self.healing_amount = 5
         self.regeneration_cooldown = Cooldown(10)
         self.radius = 100
@@ -29,7 +30,7 @@ class House(pygame.sprite.Sprite):
 
         self.faction = faction
         self.hitbox = self.rect
-        self.is_visible = True
+        self.is_visible = False
 
     
     def take_damage(self, damage):
@@ -41,9 +42,10 @@ class House(pygame.sprite.Sprite):
     
     def draw(self, offset):
         self.regeneration_cooldown.update()
-        self.healthbar.draw(self.image)
-      
-        self.image.set_alpha(255) if self.is_visible else self.image.set_alpha(80)
-        
-        pos = self.pos + offset
-        self.display_surface.blit(self.image, pos)
+
+        self.house_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+        self.house_surface.blit(self.image, (0, 0))
+        self.healthbar.draw(self.house_surface)
+        self.house_surface.set_alpha(255) if self.is_visible else self.house_surface.set_alpha(80)
+
+        self.display_surface.blit(self.house_surface, self.pos + offset)

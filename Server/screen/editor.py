@@ -40,8 +40,8 @@ class Editor:
         for i in range(100):
             Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], [self.all_sprites, self.trees_sprites])
         
-        self.knight_house = House((0, 0), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
-        self.goblin_house = House((0, 0), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
+        self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
+        self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
         Animated((200, 400), self.animations['fire'], self.all_sprites)
 
@@ -67,6 +67,11 @@ class Editor:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     self.all_sprites.hitbox_active = not self.all_sprites.hitbox_active
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_v:
+                    for house in self.houses_sprites:
+                        house.is_visible = not house.is_visible
 
             # self.get_winner()
 

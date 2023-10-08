@@ -28,6 +28,12 @@ class HealthBar(pygame.sprite.Sprite):
         self.level_rect.midleft = self.rect.midleft
         self.bg_level_rect = self.level_rect.copy().inflate(-4, -4)
 
+        # white bg
+        self.white_bg = pygame.Surface((self.max_width, 10))
+        self.white_bg_rect = self.white_bg.get_rect(midleft=self.level_rect.midright + vector(-1, 0))
+        self.white_bg.fill('white')
+        self.white_bg.set_alpha(80)
+
 
         # black bg
         self.black_bg = pygame.Surface((self.max_width, 10))
@@ -50,6 +56,10 @@ class HealthBar(pygame.sprite.Sprite):
     
 
     def draw(self, surface):
+        self.current_width = self.max_width * self.current_health / self.max_health 
+        self.health_rect.width = self.current_width
+
+        # surface.blit(self.white_bg, self.white_bg_rect)
         surface.blit(self.black_bg, self.black_bg_rect)
         pygame.draw.rect(surface, self.border, self.black_bg_rect, 2, 2)
         pygame.draw.rect(surface, self.color, self.health_rect)
