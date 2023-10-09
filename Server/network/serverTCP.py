@@ -5,6 +5,7 @@ from classes.settings import *
 class TCPServer(threading.Thread):
     def __init__(self, del_udp_client):
         super().__init__()
+        self.is_running = False
         self.del_udp_client = del_udp_client
         self.clients = []
         self.new_clients = []
@@ -12,13 +13,6 @@ class TCPServer(threading.Thread):
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    
-    
-    def start(self):
-        self.bind()
-        print(f"Serveur TCP en écoute sur {HOST}:{TCP_PORT} ...")
-        self.server_socket.listen(5)  # Permet jusqu'à 5 connexions simultanées
-        super().start()
     
 
     def bind(self):
@@ -31,8 +25,13 @@ class TCPServer(threading.Thread):
 
 
     def run(self):
-        try:
-            while True:
+        self.bind()
+        print(f"Serveur TCP en écoute sur {HOST}:{TCP_PORT} ...")
+        self.server_socket.listen(5)  # Permet jusqu'à 5 connexions simultanées
+        self.is_running = True
+        while self.is_running:
+            try:
+
                 client_socket, adress = self.server_socket.accept()
                 client_socket.settimeout(1.0)
                 print("Nouvelle connexion établie :", adress)
@@ -46,9 +45,12 @@ class TCPServer(threading.Thread):
                 client_handler.start()
                 self.clients.append(client_handler)
                 self.new_clients.append(uuid)
+            
 
-        except ConnectionAbortedError:
-            self.close()
+            except ConnectionAbortedError:
+                self.close()
+                
+        print('Thread TCP server terminated')
     
     def get_clients_data(self):
         clients_data = {}
@@ -63,6 +65,7 @@ class TCPServer(threading.Thread):
     def close(self):
         for client in self.clients:
             client.close()
+        self.is_running = False
         self.server_socket.close()
 
 
@@ -91,9 +94,10 @@ class ClientHandler(threading.Thread):
 
             except TimeoutError:
                 continue
-        
-        print('Thread TCP server receive terminated')
+            
+        print('Thread TCP server handler terminated')
         self.close()
+
         
 
     
@@ -102,10 +106,12 @@ class ClientHandler(threading.Thread):
         self.client_socket.send(data.encode(ENCODING))
     
     def close(self):
-        self.is_running = False
-        self.server.clients.remove(self)
-        self.server.del_clients.append(self.uuid)
-        self.server.del_udp_client(self.uuid)
-        self.client_socket.close()
-        print(f"Client {self.adress} déconnecté")
+        if self.is_running:
+            self.is_running = False 
+            self.server.clients.remove(self)
+            self.server.del_clients.append(self.uuid)
+            print(self.server.del_clients)
+            self.server.del_udp_client(self.uuid)
+            self.client_socket.close()
+            print(f"Client {self.adress} déconnecté")
 

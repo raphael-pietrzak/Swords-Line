@@ -10,14 +10,13 @@ from entities.sprites import Tree, Animated
 from entities.houses import House
 from network.server import Server
 from classes.ping import FPSCounter
-
+from menu.online_indicator import OnlineIndicator
 
 class Editor:
     def __init__(self, switch):
         # main setup
         self.display_surface = pygame.display.get_surface()
         self.switch_screen = switch
-        self.server = Server()
         self.fps_counter = FPSCounter('MAIN')
 
         # groups
@@ -33,6 +32,9 @@ class Editor:
         # map
         self.generate_map()
 
+        # server
+        self.server = Server()
+        self.player = Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites])
 
         
     def generate_map(self):
@@ -55,7 +57,7 @@ class Editor:
                 sys.exit()
         
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_RETURN and self.server.online:
                     print('[ EVENT ] : Return pressed')
                     self.server.send('Server Pressed Return', 'TCP')
 
@@ -72,10 +74,91 @@ class Editor:
                 if event.key == pygame.K_v:
                     for house in self.houses_sprites:
                         house.is_visible = not house.is_visible
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_o:
+                    self.server.toggle()
 
-            # self.get_winner()
+    
+    def update_players_from_keyboard(self):
+        keys = pygame.key.get_pressed()
+        inputs = []
+
+        if keys[pygame.K_UP]:
+            inputs.append('up')
+        if keys[pygame.K_DOWN]:
+            inputs.append('down')
+        if keys[pygame.K_LEFT]:
+            inputs.append('left')
+        if keys[pygame.K_RIGHT]:
+            inputs.append('right')
+        
+        self.player.inputs = inputs
 
 
+
+    def update_players_from_server(self):
+        # Utilisation conseillée :
+        new_players = self.server.get_new_clients()
+        if new_players:
+            for uuid in new_players:
+                print(f'[ NEW PLAYER ] : {uuid}')
+                player = self.generate_player()
+                self.players[uuid] = player
+            
+
+        del_players = self.server.get_del_clients()
+        if del_players:
+            print(f'[ DEL PLAYER ] : {del_players}')
+            for uuid in del_players:
+                player = self.players.get(uuid)
+                if not player: break
+                self.player_sprites.remove(player)
+                self.all_sprites.remove(player)
+                del self.players[uuid]
+
+        clients_data = self.server.receive('UDP')
+        for uuid, data in clients_data.items():
+            player = self.players.get(uuid)
+            if not player: continue
+            player.inputs = data['inputs']
+        
+        message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
+        self.server.send(message, 'UDP')
+    
+
+    def generate_player(self):
+        faction = choice(['knight', 'goblin'])
+        match faction:
+            case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
+            case 'goblin': player = Goblin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+        return player
+
+
+    def update(self, dt):
+        self.event_loop() 
+
+        # draw
+        
+        self.update_players_from_server()
+        self.update_players_from_keyboard()
+
+        self.display_surface.fill('beige')
+
+        self.all_sprites.update(dt)
+        self.all_sprites.custom_draw((0, 0))
+
+        self.server.update_indicator()
+        self.server.online_indicator.draw()
+
+        self.fps_counter.ping()
+        
+
+
+
+
+
+    
 
     def regenerate_player(self, player, house):
         player.regenerate(house.healing_amount)
@@ -143,65 +226,3 @@ class Editor:
                     return False
             return True
         return False
-    
-    
-
-
-
-
-
-
-
-    def update(self, dt):
-        self.event_loop() 
-
-        # draw
-        self.display_surface.fill('beige')
-        self.update_players_from_server()
-        # self.player_sprites.update(dt)
-        # self.player_sprites.custom_draw((0, 0))
-
-        self.all_sprites.update(dt)
-        self.all_sprites.custom_draw((0, 0))
-
-
-        self.fps_counter.ping()
-
-
-
-
-    def update_players_from_server(self):
-        # Utilisation conseillée :
-        new_players = self.server.get_new_clients()
-        for uuid in new_players:
-            print(f'[ NEW PLAYER ] : {uuid}')
-            player = self.generate_player()
-            self.players[uuid] = player
-            
-
-        del_players = self.server.get_del_clients()
-        for uuid in del_players:
-            player = self.players.get(uuid)
-            if not player: break
-            self.player_sprites.remove(player)
-            self.all_sprites.remove(player)
-            del self.players[uuid]
-
-        clients_data = self.server.receive('UDP')
-        for uuid, data in clients_data.items():
-            player = self.players.get(uuid)
-            if not player: continue
-            player.inputs = data['inputs']
-        
-        message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
-        self.server.send(message, 'UDP')
-    
-
-    def generate_player(self):
-        faction = choice(['knight', 'goblin'])
-        match faction:
-            case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
-            case 'goblin': player = Goblin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
-        return player
-
-        

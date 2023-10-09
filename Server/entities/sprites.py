@@ -58,72 +58,62 @@ class Animated(pygame.sprite.Sprite):
 
 
 
-class Tree(Animated):
-    unique_id = 0
-
+class Tree(pygame.sprite.Sprite):
     def __init__(self, pos, frames, group):
-        super().__init__(pos, frames, group)
-        midtop = self.rect.midtop
-        self.alive_frames = frames
-        self.tree_break_bar = TreeBreakBar(midtop)
+        super().__init__(group)
+        # midtop = self.rect.midtop
+        self.display_surface = pygame.display.get_surface()
+        self.pos = vector(pos)
+        self.frames = frames
+        self.index = 0
+        self.animation_frames = {
+            'idle': self.frames[:4],
+            'burning': get_frames_from_sprite_sheet('graphics/Terrain/Trees/Tree_on_Fire.png', 4, 1),
+        }
+
+        # self.tree_break_bar = TreeBreakBar(midtop)
         self.status = 'idle'
-        self.ressources = ['Pinecone', 'Twigs', 'Log']
         self.hitbox = pygame.Rect(0, 0, 20, 50)
-
-
-        self.id = Tree.unique_id
-        Tree.unique_id += 1
-
-        self.client_update_required = False
-        self.json_data = {}
+        self.ground_offset = vector(0, -20)
 
     
     def burn(self):
-        self.frames = get_frames_from_sprite_sheet('graphics/Terrain/Trees/Tree_on_Fire.png', 4, 1)
-        self.status = 'burn'
+        self.status = 'burning'
     
-
     def animate(self, dt):
-        super().animate(dt)
-        self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
+        current_animation = self.animation_frames[self.status]
+        self.index += dt * ANIMATION_SPEED
+        if self.index >= len(self.frames):
+            self.index = 0
+        
+        self.image = current_animation[int(self.index)]
+        self.rect = self.image.get_rect(center=self.pos)
+        self.mask = pygame.mask.from_surface(self.image)
 
-    def update_json(self):
-        json_data = self.get_json_data()
-        if json_data != self.json_data:
-            self.client_update_required = True
-            self.json_data = json_data
 
     def death(self):
-        # print("L'arbre est brûlé!!!")
-        
-        # Ajoutez ici le code pour traiter la fin de l'abattage de l'arbre
         self.kill()
         pos = self.pos + vector(randint(-100, 100), randint(-100, 100))
-        Tree(pos, self.alive_frames, self.group)
+        Tree(pos, self.frames, self.group)
     
-    def get_json_data(self):
-        # { "id": 1, "position": [250, 180], status": "idle" }
-        json_data = {}
-        json_data['id'] = self.id
-        json_data['position'] = [int(self.pos.x), int(self.pos.y)]
-        json_data['status'] = self.status
-        return json_data
+
 
     def update(self, dt):
         self.animate(dt)
-        if self.status == 'burn':
-            self.tree_break_bar.hit(0.3)
-        if self.tree_break_bar.ended:
-            self.death()
-        self.update_json()
+        # if self.status == 'burn':
+        #     self.tree_break_bar.hit(0.3)
+        # if self.tree_break_bar.ended:
+        #     self.death()
+        pass
 
     def draw(self, offset):
         pos = self.rect.topleft + offset
         self.display_surface.blit(self.image, pos)
-        # self.tree_break_bar.draw(offset)
+        # # self.tree_break_bar.draw(offset)
 
-        tree_hitbox_rect = self.hitbox.copy().move(offset)
-        # pygame.draw.rect(self.display_surface, 'yellow', tree_hitbox_rect)
+        # tree_hitbox_rect = self.hitbox.copy().move(offset)
+        # # pygame.draw.rect(self.display_surface, 'yellow', tree_hitbox_rect)
+        pass
 
 
 
