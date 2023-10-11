@@ -66,15 +66,18 @@ class Tree(pygame.sprite.Sprite):
         self.pos = vector(pos)
         self.frames = frames
         self.fire_frames = fire_frames
-        self.index = randint(0,400)/100
+        self.index = randint(0, 399)/100
         self.animation_frames = {
             'idle': self.frames,
             'fire': self.fire_frames
         }
 
+        self.image = self.frames[int(self.index)]
+        self.rect = self.image.get_rect(center=self.pos)
+
         # self.tree_break_bar = TreeBreakBar(midtop)
         self.status = 'idle'
-        self.hitbox = pygame.Rect(0, 0, 20, 50)
+        self.hitbox = pygame.Rect(self.rect.x, self.rect.y, 20, 50)
         self.ground_offset = vector(0, -20)
 
     
@@ -112,9 +115,6 @@ class Tree(pygame.sprite.Sprite):
         self.display_surface.blit(self.image, pos)
         # # self.tree_break_bar.draw(offset)
 
-        # tree_hitbox_rect = self.hitbox.copy().move(offset)
-        # # pygame.draw.rect(self.display_surface, 'yellow', tree_hitbox_rect)
-        pass
 
 
 

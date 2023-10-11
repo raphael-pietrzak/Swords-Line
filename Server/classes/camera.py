@@ -21,9 +21,13 @@ class CameraGroup(pygame.sprite.Group):
             sprite.draw(self.offset)
 
             if self.hitbox_active:
-                rect = sprite.rect.copy().move(self.offset.x, self.offset.y)
+                rect = sprite.rect.copy().move(self.offset)
                 pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect , 2)
+                try:
+                    hitbox = sprite.hitbox.copy().move(self.offset)
+                    pygame.draw.rect(self.display_surface, BLUE_CONTOUR, hitbox )
+                except:
+                    pass
                 pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
-
 
         

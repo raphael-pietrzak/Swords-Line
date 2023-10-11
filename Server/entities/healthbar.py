@@ -56,6 +56,10 @@ class HealthBar(pygame.sprite.Sprite):
     
 
     def draw(self, surface):
+        if self.current_health >= self.max_width:
+            return 
+        
+
         self.current_width = self.max_width * self.current_health / self.max_health 
         self.health_rect.width = self.current_width
 

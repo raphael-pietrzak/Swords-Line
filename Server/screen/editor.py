@@ -35,9 +35,14 @@ class Editor:
 
         # server
         self.server = Server()
-        self.player = Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites])
+        self.offline_players = [
+            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites]),
+            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites])]
+        self.offline_player_index = 0
+        self.player = self.offline_players[self.offline_player_index]
 
-        
+
+    # imports
     def generate_map(self):
         
         for _ in range(100):
@@ -47,6 +52,8 @@ class Editor:
         self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
         
         Animated((200, 400), self.animations['fire'], self.all_sprites)
+
+
 
     # events
     def event_loop(self):
@@ -62,23 +69,25 @@ class Editor:
                     print('[ EVENT ] : Return pressed')
                     self.server.send('Server Pressed Return', 'TCP')
 
-            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.server.close()
                     self.switch_screen("menu")
 
-            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     self.all_sprites.hitbox_active = not self.all_sprites.hitbox_active
 
-            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_v:
                     for house in self.houses_sprites:
                         house.is_visible = not house.is_visible
             
-            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_o:
                     self.server.toggle()
+
+                if event.key == pygame.K_s:
+                    self.offline_player_index += 1
+                    if self.offline_player_index >= len(self.offline_players):
+                        self.offline_player_index = 0
+                    self.player = self.offline_players[self.offline_player_index]
 
     
     def update_players_from_keyboard(self):
@@ -93,17 +102,31 @@ class Editor:
             inputs.append('left')
         if keys[pygame.K_RIGHT]:
             inputs.append('right')
-        
-        self.player.inputs = inputs
+        if keys[pygame.K_RMETA]:
+            inputs.append('attack')
+
+        for player in self.offline_players:
+            if player == self.player:
+                self.player.inputs = inputs
+            else:
+                player.inputs = []
 
 
+    # def update_house_visibility(self, player):
+    #     for house in self.houses_sprites:
+    #         distance = vector(player.rect.center).distance_to(vector(house.rect.center))
+    #         if distance < house.radius:
+    #             house.is_visible = True
+    #             break
+    
 
+    # server events
     def update_players_from_server(self):
         # Utilisation conseillée :
         new_players = self.server.get_new_clients()
         if new_players:
+            print(f'[ NEW PLAYER ] : {uuid}')
             for uuid in new_players:
-                print(f'[ NEW PLAYER ] : {uuid}')
                 player = self.generate_player()
                 self.players[uuid] = player
             
@@ -124,35 +147,74 @@ class Editor:
             if not player: continue
             player.inputs = data['inputs']
         
+    
+    def send_player_data(self):
         message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
         self.server.send(message, 'UDP')
     
 
     def generate_player(self):
         faction = choice(['knight', 'goblin'])
+
         match faction:
             case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
             case 'goblin': player = Goblin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+
         return player
 
 
+    # collisions
+    def collide_check(self):
+        players_attacking = [player for player in self.player_sprites if player.status == 'attack' and not player.hit_success]
+
+        # sword collide
+        for player in players_attacking:
+
+            trees_attacked = [tree for tree in self.trees_sprites if tree.hitbox.colliderect(player.sword_hitbox)]
+            for tree in trees_attacked:
+                player.hit_success = True
+                tree.burn()
+
+            players_attacked = [enemy for enemy in self.player_sprites if enemy.hitbox.colliderect(player.sword_hitbox)]
+            for victim in players_attacked:
+                if victim != player:
+                    victim.take_damage(player.damage)
+                    player.hit_success = True
+            
+        for house in self.houses_sprites:
+            house.is_visible = False
+
+        # heal distance
+        for player in self.player_sprites:
+            pass
+
+
+    # display
     def update(self, dt):
         self.event_loop() 
 
-        # draw
         
+        # update
         self.update_players_from_server()
         self.update_players_from_keyboard()
 
-        self.display_surface.fill('beige')
+        self.collide_check()
 
         self.all_sprites.update(dt)
-        self.all_sprites.custom_draw(self.player.rect.center)
-
+        self.send_player_data()
+        
         self.server.update_indicator()
+        
+        self.fps_counter.ping()
+
+
+        # draw
+        self.display_surface.fill('beige')
+        
+        self.all_sprites.custom_draw(self.player.rect.center)
+        
         self.server.online_indicator.draw()
 
-        self.fps_counter.ping()
         
 
 
@@ -168,15 +230,7 @@ class Editor:
         player.regenerate(house.healing_amount)
 
 
-    def update_house_visibility(self, player, player_houses):
-        for house in player_houses:
-            house.is_visible = False
-        for house in player_houses:
-            distance = vector(player.rect.center).distance_to(vector(house.rect.center))
-            if distance < house.radius:
-                house.is_visible = True
-                break
-    
+
 
     def check_collision(self):
         for player in self.player_sprites:

@@ -22,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.ground_offset = vector(0, -60)
 
         self.color =  (randint(0, 255), randint(0, 255), randint(0, 255))
-        self.attacking = False
+        self.is_attacking = False
         self.group = group
 
         # status
@@ -43,15 +43,19 @@ class Player(pygame.sprite.Sprite):
 
         # health
         self.healthbar = HealthBar('blue', (self.rect.width // 2, 10))
-        self.healthbar.current_health = 30
         self.damage = 10
-        self.attack_cooldown = Cooldown(20)
+        self.attack_cooldown = Cooldown(40)
+        self.hit_success = False
 
         # time
         self.last_update_time = time.time()
         self.speed = 300
         self.respawn_point = self.pos.copy()
         self.inputs = []
+
+        # hitbox
+        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 20, 20)
+        self.sword_hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 30, 30)
     
 
     def get_position(self):
@@ -64,6 +68,8 @@ class Player(pygame.sprite.Sprite):
 
         self.index += dt * ANIMATION_SPEED
         if self.index >= len(current_animation):
+            self.status = 'idle' if self.status == 'attack' else self.status
+            self.hit_success = False
             self.index = 0
         
         self.image = current_animation[int(self.index)]
@@ -75,6 +81,9 @@ class Player(pygame.sprite.Sprite):
         current_time = time.time()
         time_elapsed = current_time - self.last_update_time
         self.last_update_time = current_time
+
+        if self.status == 'attack':
+            return
 
         self.status = "run" 
 
@@ -91,16 +100,16 @@ class Player(pygame.sprite.Sprite):
             self.direction = "right"
         if 'attack' in self.inputs:
             self.status = "attack"
-            if not self.attacking:
-                self.index = 0
-                self.attacking = True
-        else:
-            self.attacking = False
+            self.index = 0
+
         
         if not self.inputs:
             self.status = "idle"
         
+        # update rects pos
         self.rect.center = self.pos
+        self.hitbox.center = self.pos
+        self.sword_hitbox.center = self.pos + vector(20, -10)
 
     
     def heal(self, amount):
@@ -114,17 +123,24 @@ class Player(pygame.sprite.Sprite):
         if self.healthbar.current_health <= 0:
             DeadHead(self.pos, self.group[0])
             self.__init__(self.respawn_point, self.frames, self.group) if self.respawn_point else self.kill()
+    
+    def update_house_visibility(self):
+        pass
 
 
     def draw(self, offset):
         self.player_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
         self.player_surface.blit(self.image, (0, 0))
 
-        if self.healthbar.current_health < self.healthbar.max_width:
-            self.healthbar.draw(self.player_surface)
+        
+        self.healthbar.draw(self.player_surface)
         
         pos = self.rect.topleft + offset
         self.display_surface.blit(self.player_surface, pos)
+
+
+        sword_hitbox_rect = self.sword_hitbox.copy().move(offset)
+        pygame.draw.rect(self.display_surface, 'yellow', sword_hitbox_rect)
     
 
     def update(self, dt):
