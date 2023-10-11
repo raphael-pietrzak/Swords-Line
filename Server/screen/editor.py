@@ -1,3 +1,4 @@
+import time
 import pygame, sys
 from pygame import Vector2 as vector
 from random import choice, randint
@@ -39,8 +40,8 @@ class Editor:
         
     def generate_map(self):
         
-        for i in range(100):
-            Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], [self.all_sprites, self.trees_sprites])
+        for _ in range(100):
+            Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], self.animations['tree_fire'], [self.all_sprites, self.trees_sprites])
         
         self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
         self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
@@ -63,7 +64,7 @@ class Editor:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.server.stop()
+                    self.server.close()
                     self.switch_screen("menu")
 
             if event.type == pygame.KEYDOWN:
@@ -146,7 +147,7 @@ class Editor:
         self.display_surface.fill('beige')
 
         self.all_sprites.update(dt)
-        self.all_sprites.custom_draw((0, 0))
+        self.all_sprites.custom_draw(self.player.rect.center)
 
         self.server.update_indicator()
         self.server.online_indicator.draw()
@@ -156,9 +157,12 @@ class Editor:
 
 
 
-
+########################################################################################################
 
     
+
+
+
 
     def regenerate_player(self, player, house):
         player.regenerate(house.healing_amount)

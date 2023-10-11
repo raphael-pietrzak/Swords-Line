@@ -59,16 +59,17 @@ class Animated(pygame.sprite.Sprite):
 
 
 class Tree(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, group):
+    def __init__(self, pos, frames, fire_frames, group):
         super().__init__(group)
         # midtop = self.rect.midtop
         self.display_surface = pygame.display.get_surface()
         self.pos = vector(pos)
         self.frames = frames
-        self.index = 0
+        self.fire_frames = fire_frames
+        self.index = randint(0,400)/100
         self.animation_frames = {
-            'idle': self.frames[:4],
-            'burning': get_frames_from_sprite_sheet('graphics/Terrain/Trees/Tree_on_Fire.png', 4, 1),
+            'idle': self.frames,
+            'fire': self.fire_frames
         }
 
         # self.tree_break_bar = TreeBreakBar(midtop)
@@ -78,7 +79,7 @@ class Tree(pygame.sprite.Sprite):
 
     
     def burn(self):
-        self.status = 'burning'
+        self.status = 'fire'
     
     def animate(self, dt):
         current_animation = self.animation_frames[self.status]
