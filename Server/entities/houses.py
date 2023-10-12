@@ -23,9 +23,9 @@ class House(pygame.sprite.Sprite):
         # health
         self.healthbar =  HealthBar('red', (self.rect.width // 2, 10))
         self.healthbar.current_health = 30
-        self.healing_amount = 5
         self.regeneration_cooldown = Cooldown(10)
-        self.radius = 100
+        self.heal_radius = 100
+        self.healing_amount = 5
 
 
         self.faction = faction

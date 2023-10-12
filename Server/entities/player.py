@@ -11,7 +11,7 @@ from classes.time import Cooldown
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, frames, group):
+    def __init__(self, pos, frames, group, house):
         super().__init__(group)
         self.display_surface = pygame.display.get_surface()
         self.player_surface = pygame.Surface(frames[0].get_size(), pygame.SRCALPHA)
@@ -24,6 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.color =  (randint(0, 255), randint(0, 255), randint(0, 255))
         self.is_attacking = False
         self.group = group
+        self.house = house
 
         # status
         self.status = "idle"
@@ -50,7 +51,7 @@ class Player(pygame.sprite.Sprite):
         # time
         self.last_update_time = time.time()
         self.speed = 300
-        self.respawn_point = self.pos.copy()
+        self.respawn_point = self.house.rect.center
         self.inputs = []
 
         # hitbox
@@ -124,8 +125,14 @@ class Player(pygame.sprite.Sprite):
             DeadHead(self.pos, self.group[0])
             self.__init__(self.respawn_point, self.frames, self.group) if self.respawn_point else self.kill()
     
+
     def update_house_visibility(self):
-        pass
+        distance_to_house = vector(self.rect.center).distance_to(vector(self.house.rect.center))
+        if distance_to_house < self.house.heal_radius:
+            self.house.is_visible = True
+    
+
+
 
 
     def draw(self, offset):
@@ -146,19 +153,21 @@ class Player(pygame.sprite.Sprite):
     def update(self, dt):
         self.attack_cooldown.update()
         self.move()
+        self.update_house_visibility()
         self.animate(dt)
         
 
 
 class Goblin(Player):
-    def __init__(self, pos, frames, group):
-        super().__init__(pos, frames, group)
-        self.faction = 'Goblin'
+    def __init__(self, pos, frames, group, house):
+        super().__init__(pos, frames, group, house)
+        self.faction = 'goblin'
 
     def attack_tree(self, tree):
         tree.burn()
 
+
 class Knight(Player):
-    def __init__(self, pos, frames, group):
-        super().__init__(pos, frames, group)
-        self.faction = 'Knight'
+    def __init__(self, pos, frames, group, house):
+        super().__init__(pos, frames, group, house)
+        self.faction = 'knight'

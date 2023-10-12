@@ -35,11 +35,7 @@ class Editor:
 
         # server
         self.server = Server()
-        self.offline_players = [
-            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites]),
-            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites])]
-        self.offline_player_index = 0
-        self.player = self.offline_players[self.offline_player_index]
+
 
 
     # imports
@@ -48,10 +44,17 @@ class Editor:
         for _ in range(100):
             Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], self.animations['tree_fire'], [self.all_sprites, self.trees_sprites])
         
-        self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "Knight")
-        self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "Goblin")
+        self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "knight")
+        self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "goblin")
         
         Animated((200, 400), self.animations['fire'], self.all_sprites)
+
+
+        self.offline_players = [
+            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites], self.goblin_house),
+            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house)]
+        self.offline_player_index = 0
+        self.player = self.offline_players[self.offline_player_index]
 
 
 
@@ -157,8 +160,17 @@ class Editor:
         faction = choice(['knight', 'goblin'])
 
         match faction:
-            case 'knight': player = Knight(self.knight_house.rect.center, self.animations['knight'], [self.all_sprites, self.player_sprites])
-            case 'goblin': player = Goblin(self.goblin_house.rect.center, self.animations['goblin'], [self.all_sprites, self.player_sprites])
+            case 'knight': player = Knight(
+                pos = self.knight_house.rect.center, 
+                frames = self.animations['knight'], 
+                group = [self.all_sprites, self.player_sprites], 
+                house = self.knight_house)
+
+            case 'goblin': player = Goblin(
+                pos = self.goblin_house.rect.center, 
+                frames = self.animations['goblin'], 
+                group = [self.all_sprites, self.player_sprites], 
+                house = self.goblin_house)
 
         return player
 
@@ -172,8 +184,8 @@ class Editor:
 
             trees_attacked = [tree for tree in self.trees_sprites if tree.hitbox.colliderect(player.sword_hitbox)]
             for tree in trees_attacked:
-                player.hit_success = True
                 tree.burn()
+                player.hit_success = True
 
             players_attacked = [enemy for enemy in self.player_sprites if enemy.hitbox.colliderect(player.sword_hitbox)]
             for victim in players_attacked:
@@ -184,9 +196,6 @@ class Editor:
         for house in self.houses_sprites:
             house.is_visible = False
 
-        # heal distance
-        for player in self.player_sprites:
-            pass
 
 
     # display
@@ -199,20 +208,16 @@ class Editor:
         self.update_players_from_keyboard()
 
         self.collide_check()
-
         self.all_sprites.update(dt)
+
         self.send_player_data()
-        
         self.server.update_indicator()
-        
         self.fps_counter.ping()
 
 
         # draw
         self.display_surface.fill('beige')
-        
         self.all_sprites.custom_draw(self.player.rect.center)
-        
         self.server.online_indicator.draw()
 
         
