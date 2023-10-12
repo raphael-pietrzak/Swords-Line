@@ -44,6 +44,7 @@ class Player(pygame.sprite.Sprite):
 
         # health
         self.healthbar = HealthBar('blue', (self.rect.width // 2, 10))
+        self.heal_cooldown = Cooldown(30)
         self.damage = 10
         self.attack_cooldown = Cooldown(40)
         self.hit_success = False
@@ -132,6 +133,11 @@ class Player(pygame.sprite.Sprite):
             self.house.is_visible = True
     
 
+    def update_healing(self):
+        distance_to_house = vector(self.rect.center).distance_to(vector(self.house.rect.center))
+        if distance_to_house < self.house.heal_radius and not self.heal_cooldown.active:
+            self.heal(self.house.heal_amount)
+            self.heal_cooldown.activate()
 
 
 
@@ -152,8 +158,10 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.attack_cooldown.update()
+        self.heal_cooldown.update()
         self.move()
         self.update_house_visibility()
+        self.update_healing()
         self.animate(dt)
         
 

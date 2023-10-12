@@ -23,9 +23,8 @@ class House(pygame.sprite.Sprite):
         # health
         self.healthbar =  HealthBar('red', (self.rect.width // 2, 10))
         self.healthbar.current_health = 30
-        self.regeneration_cooldown = Cooldown(10)
         self.heal_radius = 100
-        self.healing_amount = 5
+        self.heal_amount = 5
 
 
         self.faction = faction
@@ -41,7 +40,6 @@ class House(pygame.sprite.Sprite):
 
     
     def draw(self, offset):
-        self.regeneration_cooldown.update()
 
         self.house_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
         self.house_surface.blit(self.image, (0, 0))
