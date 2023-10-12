@@ -64,28 +64,10 @@ class Player(pygame.sprite.Sprite):
         return [int(self.pos.x), int(self.pos.y)]
 
 
-    def animate(self, dt):
-        key = f'{self.status}_{self.direction}'
-        current_animation = self.animation_frames[key]
-
-        self.index += dt * ANIMATION_SPEED
-        if self.index >= len(current_animation):
-            self.status = 'idle' if self.status == 'attack' else self.status
-            self.hit_success = False
-            self.index = 0
-        
-        self.image = current_animation[int(self.index)]
-        self.mask = pygame.mask.from_surface(self.image)
-
-
-
     def move(self):
         current_time = time.time()
         time_elapsed = current_time - self.last_update_time
         self.last_update_time = current_time
-
-        if self.status == 'attack':
-            return
 
         self.status = "run" 
 
@@ -101,19 +83,40 @@ class Player(pygame.sprite.Sprite):
             self.pos.x += self.speed * time_elapsed
             self.direction = "right"
         if 'attack' in self.inputs:
-            self.status = "attack"
-            self.index = 0
+            if not self.is_attacking:
+                self.is_attacking = True
+                self.index = 0
 
         
         if not self.inputs:
             self.status = "idle"
+        
+        if self.is_attacking:
+            self.status = "attack"
         
         # update rects pos
         self.rect.center = self.pos
         self.hitbox.center = self.pos
         self.sword_hitbox.center = self.pos + vector(60, -10) if self.direction == "right" else self.pos + vector(-60, -10)
 
+
+
+    def animate(self, dt):
+
+        key = f'{self.status}_{self.direction}'
+        current_animation = self.animation_frames[key]
+
+        self.index += dt * ANIMATION_SPEED
+        if self.index >= len(current_animation):
+            self.is_attacking = False
+            self.hit_success = False
+            self.index = 0
+        
+        self.image = current_animation[int(self.index)]
+        self.mask = pygame.mask.from_surface(self.image)
     
+
+
     def heal(self, amount):
         self.healthbar.current_health += amount
         self.healthbar.current_health = min(self.healthbar.current_health, self.healthbar.max_width)

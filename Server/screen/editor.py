@@ -177,7 +177,7 @@ class Editor:
 
     # collisions
     def collide_check(self):
-        players_attacking = [player for player in self.player_sprites if player.status == 'attack' and not player.hit_success]
+        players_attacking = [player for player in self.player_sprites if player.is_attacking and not player.hit_success]
 
         # sword collide
         for player in players_attacking:
