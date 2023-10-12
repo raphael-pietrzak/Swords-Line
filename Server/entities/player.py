@@ -56,7 +56,7 @@ class Player(pygame.sprite.Sprite):
         self.inputs = []
 
         # hitbox
-        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 20, 20)
+        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 40, 70)
         self.sword_hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 30, 30)
     
 
@@ -111,7 +111,7 @@ class Player(pygame.sprite.Sprite):
         # update rects pos
         self.rect.center = self.pos
         self.hitbox.center = self.pos
-        self.sword_hitbox.center = self.pos + vector(20, -10)
+        self.sword_hitbox.center = self.pos + vector(60, -10) if self.direction == "right" else self.pos + vector(-60, -10)
 
     
     def heal(self, amount):
@@ -124,7 +124,7 @@ class Player(pygame.sprite.Sprite):
         self.healthbar.current_health = max(0, self.healthbar.current_health)
         if self.healthbar.current_health <= 0:
             DeadHead(self.pos, self.group[0])
-            self.__init__(self.respawn_point, self.frames, self.group) if self.respawn_point else self.kill()
+            self.__init__(self.respawn_point, self.frames, self.group, self.house) if self.respawn_point else self.kill()
     
 
     def update_house_visibility(self):
@@ -151,9 +151,6 @@ class Player(pygame.sprite.Sprite):
         pos = self.rect.topleft + offset
         self.display_surface.blit(self.player_surface, pos)
 
-
-        sword_hitbox_rect = self.sword_hitbox.copy().move(offset)
-        pygame.draw.rect(self.display_surface, 'yellow', sword_hitbox_rect)
     
 
     def update(self, dt):

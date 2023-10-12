@@ -28,7 +28,8 @@ class House(pygame.sprite.Sprite):
 
 
         self.faction = faction
-        self.hitbox = self.rect
+        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 100, 140)
+        self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
         self.is_visible = False
 
     

@@ -1,5 +1,6 @@
 import pygame
 from pygame import Vector2 as vector
+from entities.player import Player
 from classes.settings import *
 
 class CameraGroup(pygame.sprite.Group):
@@ -28,6 +29,11 @@ class CameraGroup(pygame.sprite.Group):
                     pygame.draw.rect(self.display_surface, BLUE_CONTOUR, hitbox )
                 except:
                     pass
+
+                if isinstance(sprite, Player):
+                    sword_rect = sprite.sword_hitbox.copy().move(self.offset)
+                    pygame.draw.rect(self.display_surface, 'yellow', sword_rect )
+                
                 pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
 
         

@@ -77,9 +77,9 @@ class Tree(pygame.sprite.Sprite):
 
         # self.tree_break_bar = TreeBreakBar(midtop)
         self.status = 'idle'
-        self.hitbox = pygame.Rect(self.rect.x, self.rect.y, 20, 50)
         self.ground_offset = vector(0, -20)
-
+        self.hitbox = pygame.Rect(self.rect.x, self.rect.y, 20, 50)
+        self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
     
     def burn(self):
         self.status = 'fire'
