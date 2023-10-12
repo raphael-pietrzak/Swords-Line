@@ -32,7 +32,7 @@ class Player(pygame.sprite.Sprite):
 
         # animation
         self.frames = frames
-        self.index = 0
+        self.frame_index = 0
         self.animation_frames = {
             'idle_right': self.frames[:6],
             'run_right': self.frames[6:12], 
@@ -85,7 +85,7 @@ class Player(pygame.sprite.Sprite):
         if 'attack' in self.inputs:
             if not self.is_attacking:
                 self.is_attacking = True
-                self.index = 0
+                self.frame_index = 0
 
         
         if not self.inputs:
@@ -106,13 +106,14 @@ class Player(pygame.sprite.Sprite):
         key = f'{self.status}_{self.direction}'
         current_animation = self.animation_frames[key]
 
-        self.index += dt * ANIMATION_SPEED
-        if self.index >= len(current_animation):
+        self.frame_index += dt * ANIMATION_SPEED
+        if self.frame_index >= len(current_animation):
             self.is_attacking = False
             self.hit_success = False
-            self.index = 0
+            self.frame_index = 0
         
-        self.image = current_animation[int(self.index)]
+
+        self.image = current_animation[int(self.frame_index)]
         self.mask = pygame.mask.from_surface(self.image)
     
 
