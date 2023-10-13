@@ -158,7 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.healthbar.current_health = max(0, self.healthbar.current_health)
         if self.healthbar.current_health <= 0:
             DeadHead(self.pos, self.group[0])
-            self.__init__(self.respawn_point, self.frames, self.group, self.house) if self.respawn_point else self.kill()
+            self.__init__(self.respawn_point, self.frames, self.group, self.house, self.collision_sprites) if self.respawn_point else self.kill()
     
 
     def update_house_visibility(self):

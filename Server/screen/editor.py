@@ -7,7 +7,7 @@ from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
 from entities.player import Goblin, Knight
-from entities.sprites import Block, Tree, Animated
+from entities.sprites import Block, Flame, Tree
 from entities.houses import House
 from network.server import Server
 from classes.ping import FPSCounter
@@ -22,10 +22,11 @@ class Editor:
 
         # groups
         self.all_sprites = CameraGroup()
-        self.player_sprites = CameraGroup()
+        self.player_sprites = pygame.sprite.Group()
         self.trees_sprites = pygame.sprite.Group()
         self.houses_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
+        self.damage_sprites = pygame.sprite.Group()
         self.players = {}
 
         # animations
@@ -48,7 +49,7 @@ class Editor:
         self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "knight")
         self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "goblin")
         
-        Animated((200, 400), self.animations['fire'], self.all_sprites)
+        Flame((200, 400), self.animations['fire'], [self.all_sprites, self.damage_sprites])
 
 
         self.offline_players = [
@@ -200,6 +201,12 @@ class Editor:
             house.is_visible = False
 
 
+    def get_damage(self):
+        damage_sprites = pygame.sprite.spritecollide(self.player, self.damage_sprites, False, pygame.sprite.collide_mask)
+        for sprite in damage_sprites:
+            if not sprite.attack_cooldown.active:
+                self.player.take_damage(sprite.damage)
+                sprite.attack_cooldown.activate()
 
     # display
     def update(self, dt):
@@ -212,6 +219,8 @@ class Editor:
 
         self.collide_check()
         self.all_sprites.update(dt)
+
+        self.get_damage()
 
         self.send_player_data()
         self.server.update_indicator()

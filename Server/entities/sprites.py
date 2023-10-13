@@ -4,6 +4,7 @@ from pygame import Vector2 as vector
 from classes.settings import *
 from random import uniform, randint, choice
 from classes.imports import get_frames_from_sprite_sheet
+from classes.time import Cooldown
 from entities.healthbar import TreeBreakBar
 
 class Sprite(pygame.sprite.Sprite):
@@ -148,5 +149,16 @@ class DeadHead(Animated):
     
     def update(self, dt):
         self.animate(dt)
+
+
+class Flame(Animated):
+    def __init__(self, pos, frames, group):
+        super().__init__(pos, frames, group)
+        self.damage = 2
+        self.attack_cooldown = Cooldown(20)
+    
+    def update(self, dt):
+        self.animate(dt)
+        self.attack_cooldown.update()
 
 
