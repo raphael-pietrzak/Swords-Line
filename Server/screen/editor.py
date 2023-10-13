@@ -7,7 +7,7 @@ from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
 from entities.player import Goblin, Knight
-from entities.sprites import Tree, Animated
+from entities.sprites import Block, Tree, Animated
 from entities.houses import House
 from network.server import Server
 from classes.ping import FPSCounter
@@ -25,6 +25,7 @@ class Editor:
         self.player_sprites = CameraGroup()
         self.trees_sprites = pygame.sprite.Group()
         self.houses_sprites = pygame.sprite.Group()
+        self.collision_sprites = pygame.sprite.Group()
         self.players = {}
 
         # animations
@@ -42,7 +43,7 @@ class Editor:
     def generate_map(self):
         
         for _ in range(100):
-            Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], self.animations['tree_fire'], [self.all_sprites, self.trees_sprites])
+            Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], self.animations['tree_fire'], [self.all_sprites, self.trees_sprites], self.collision_sprites)
         
         self.knight_house = House((300, 300), self.animations['knight_house'], [self.all_sprites, self.houses_sprites], "knight")
         self.goblin_house = House((20, 20), self.animations['goblin_house'], [self.all_sprites, self.houses_sprites], "goblin")
@@ -51,8 +52,8 @@ class Editor:
 
 
         self.offline_players = [
-            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites], self.goblin_house),
-            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house)]
+            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites], self.goblin_house, self.collision_sprites),
+            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house, self.collision_sprites)]
         self.offline_player_index = 0
         self.player = self.offline_players[self.offline_player_index]
 
@@ -164,13 +165,15 @@ class Editor:
                 pos = self.knight_house.rect.center, 
                 frames = self.animations['knight'], 
                 group = [self.all_sprites, self.player_sprites], 
-                house = self.knight_house)
+                house = self.knight_house,
+                collision_sprites = self.collision_sprites)
 
             case 'goblin': player = Goblin(
                 pos = self.goblin_house.rect.center, 
                 frames = self.animations['goblin'], 
                 group = [self.all_sprites, self.player_sprites], 
-                house = self.goblin_house)
+                house = self.goblin_house,
+                collision_sprites = self.collision_sprites)
 
         return player
 

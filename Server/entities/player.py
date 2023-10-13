@@ -11,7 +11,7 @@ from classes.time import Cooldown
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, frames, group, house):
+    def __init__(self, pos, frames, group, house, collision_sprites):
         super().__init__(group)
         self.display_surface = pygame.display.get_surface()
         self.player_surface = pygame.Surface(frames[0].get_size(), pygame.SRCALPHA)
@@ -41,6 +41,7 @@ class Player(pygame.sprite.Sprite):
             'run_left': [pygame.transform.flip(f, True, False) for f in self.frames[6:12]], 
             'attack_left': [pygame.transform.flip(f, True, False) for f in self.frames[12:]]
         }
+        self.collision_sprites = collision_sprites
 
         # health
         self.healthbar = HealthBar('blue', (self.rect.width // 2, 10))
@@ -69,19 +70,27 @@ class Player(pygame.sprite.Sprite):
         time_elapsed = current_time - self.last_update_time
         self.last_update_time = current_time
 
+
         self.status = "run" 
 
-
+        # vertical
         if 'up' in self.inputs:
             self.pos.y -= self.speed * time_elapsed
         if 'down' in self.inputs:
             self.pos.y += self.speed * time_elapsed
+        self.collision('vertical')
+
+        # horizontal
         if 'left' in self.inputs:
             self.pos.x -= self.speed * time_elapsed
             self.direction = "left"
         if 'right' in self.inputs:
             self.pos.x += self.speed * time_elapsed
             self.direction = "right"
+        self.collision('horizontal')
+
+
+
         if 'attack' in self.inputs:
             if not self.is_attacking:
                 self.is_attacking = True
@@ -93,12 +102,33 @@ class Player(pygame.sprite.Sprite):
         
         if self.is_attacking:
             self.status = "attack"
-        
+
+
         # update rects pos
         self.rect.center = self.pos
         self.hitbox.center = self.pos
         self.sword_hitbox.center = self.pos + vector(60, -10) if self.direction == "right" else self.pos + vector(-60, -10)
 
+
+    def collision(self, direction):
+        offset = vector(self.rect.midbottom) + self.ground_offset - self.rect.center
+
+        if direction == 'vertical':
+            for sprite in self.collision_sprites:
+                if sprite.rect.collidepoint(self.pos + offset) :
+                    if 'up' in self.inputs:
+                        self.pos.y = sprite.rect.bottom - offset.y
+                    if 'down' in self.inputs:
+                        self.pos.y = sprite.rect.top - offset.y -1
+                        
+
+        if direction == 'horizontal':
+            for sprite in self.collision_sprites:
+                if sprite.rect.collidepoint(self.pos + offset) :
+                    if 'left' in self.inputs:
+                        self.pos.x = sprite.rect.right - offset.x
+                    if 'right' in self.inputs:
+                        self.pos.x = sprite.rect.left - offset.x -1
 
 
     def animate(self, dt):
@@ -168,8 +198,8 @@ class Player(pygame.sprite.Sprite):
 
 
 class Goblin(Player):
-    def __init__(self, pos, frames, group, house):
-        super().__init__(pos, frames, group, house)
+    def __init__(self, pos, frames, group, house, collision_sprites):
+        super().__init__(pos, frames, group, house, collision_sprites)
         self.faction = 'goblin'
 
     def attack_tree(self, tree):
@@ -177,6 +207,6 @@ class Goblin(Player):
 
 
 class Knight(Player):
-    def __init__(self, pos, frames, group, house):
-        super().__init__(pos, frames, group, house)
+    def __init__(self, pos, frames, group, house, collision_sprites):
+        super().__init__(pos, frames, group, house, collision_sprites)
         self.faction = 'knight'

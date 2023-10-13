@@ -34,8 +34,6 @@ class Animated(pygame.sprite.Sprite):
         self.ground_offset = vector(0, -15)
         self.mask = pygame.mask.from_surface(self.image)
 
-        self.block_size = vector(30, 20)
-        self.block = Block(self.rect.midbottom + self.ground_offset , self.block_size)
 
 
     def animate(self, dt):
@@ -59,10 +57,11 @@ class Animated(pygame.sprite.Sprite):
 
 
 class Tree(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, fire_frames, group):
+    def __init__(self, pos, frames, fire_frames, group, collision_sprites):
         super().__init__(group)
         # midtop = self.rect.midtop
         self.display_surface = pygame.display.get_surface()
+        self.collision_sprites = collision_sprites
         self.pos = vector(pos)
         self.frames = frames
         self.fire_frames = fire_frames
@@ -81,6 +80,10 @@ class Tree(pygame.sprite.Sprite):
         self.hitbox = pygame.Rect(self.rect.x, self.rect.y, 20, 50)
         self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
     
+        self.block_size = vector(30, 20)    
+        self.block = Block(self.rect.midbottom + self.ground_offset , self.block_size, self.collision_sprites)
+
+
     def burn(self):
         self.status = 'fire'
     
@@ -104,7 +107,7 @@ class Tree(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.animate(dt)
-        # if self.status == 'burn':
+        # if self.status == 'fire':
         #     self.tree_break_bar.hit(0.3)
         # if self.tree_break_bar.ended:
         #     self.death()
@@ -113,19 +116,27 @@ class Tree(pygame.sprite.Sprite):
     def draw(self, offset):
         pos = self.rect.topleft + offset
         self.display_surface.blit(self.image, pos)
+        # self.block.draw(offset)
         # # self.tree_break_bar.draw(offset)
 
 
 
 
-class Block:
-    def __init__(self, pos, size):
+class Block(pygame.sprite.Sprite):
+    def __init__(self, pos, size, group):
+        super().__init__(group)
+        self.display_surface = pygame.display.get_surface()
         self.pos = vector(pos)
         self.rect = pygame.Rect(self.pos, size)
         self.rect.midbottom = self.pos
         self.image = pygame.Surface(size)
         self.image.fill('black')
         self.pos = self.rect.center
+    
+
+    def draw(self, offset):
+        pos = self.rect.topleft + offset
+        self.display_surface.blit(self.image, pos)
 
 
 class DeadHead(Animated):
