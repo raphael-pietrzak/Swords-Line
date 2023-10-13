@@ -1,7 +1,9 @@
 import pygame
-from screen.home import GameMenu
+from screen.home_menu import GameMenu
 from classes.settings import *
 from screen.editor import Editor
+from screen.servers_menu import ServersMenu
+from screen.settings_menu import SettingsMenu
 
 class Main:
     def __init__(self):
@@ -17,7 +19,9 @@ class Main:
     def switch_screen(self, screen):
         match screen:
             case 'client': self.screen = Editor(self.switch_screen)
-            case 'menu': self.screen = self.menu
+            case 'servers': self.screen = ServersMenu(self.switch_screen)
+            case 'settings': self.screen = SettingsMenu(self.switch_screen)
+            case 'home': self.screen = self.menu
 
     
     def run(self):

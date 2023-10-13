@@ -17,7 +17,7 @@ class House(pygame.sprite.Sprite):
         self.pos = vector(pos)
         self.image = image
         self.rect = self.image.get_rect(topleft=self.pos)
-        self.ground_offset = vector(0, -20)
+        self.ground_offset = vector(0, -25)
 
 
         # health
@@ -28,7 +28,7 @@ class House(pygame.sprite.Sprite):
 
 
         self.faction = faction
-        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 100, 140)
+        self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 100, 120)
         self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
         self.is_visible = False
 

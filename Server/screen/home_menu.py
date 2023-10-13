@@ -23,20 +23,27 @@ class GameMenu:
         
     def menu_click(self, event):
         if self.buttons.hover:
+
             if event.type == pygame.MOUSEBUTTONDOWN and mouse_buttons()[0]:
-                for sprite in self.buttons:
-                    if sprite.rect.collidepoint(mouse_pos()):
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                        self.switch_screen("client")
+                if self.settings_button.rect.collidepoint(mouse_pos()):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    self.switch_screen("settings")
+                if self.servers_button.rect.collidepoint(mouse_pos()):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    self.switch_screen("servers")
+                if self.play_button.rect.collidepoint(mouse_pos()):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    self.switch_screen("client")
 
 
     # draw
     def create_buttons(self):
         first_pos_y = 300
         margin = 80
-        Button((WINDOW_WIDTH/2, first_pos_y), (WINDOW_WIDTH/2, 50), 'Solo', self.buttons)
-        # Button((WINDOW_WIDTH/2, first_pos_y + margin), (WINDOW_WIDTH/2, 50), 'Multi', self.buttons)
-        Button((WINDOW_WIDTH/2, first_pos_y + margin), (WINDOW_WIDTH/2, 50), 'Settings', self.buttons)
+        self.play_button = Button((WINDOW_WIDTH/2, first_pos_y), (WINDOW_WIDTH/2, 50), 'Play', self.buttons)
+        self.servers_button = Button((WINDOW_WIDTH/2, first_pos_y + margin), (WINDOW_WIDTH/2, 50), 'Servers', self.buttons)
+        self.settings_button = Button((WINDOW_WIDTH/2, first_pos_y + 2 * margin), (WINDOW_WIDTH/2, 50), 'Settings', self.buttons)
+
 
 
     # update

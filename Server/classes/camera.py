@@ -24,16 +24,16 @@ class CameraGroup(pygame.sprite.Group):
             if self.hitbox_active:
                 rect = sprite.rect.copy().move(self.offset)
                 pygame.draw.rect(self.display_surface, BLUE_CONTOUR, rect , 2)
-                try:
-                    hitbox = sprite.hitbox.copy().move(self.offset)
-                    pygame.draw.rect(self.display_surface, BLUE_CONTOUR, hitbox )
-                except:
-                    pass
+                # try:
+                #     hitbox = sprite.hitbox.copy().move(self.offset)
+                #     pygame.draw.rect(self.display_surface, BLUE_CONTOUR, hitbox )
+                # except:
+                #     pass
 
-                if isinstance(sprite, Player):
-                    sword_rect = sprite.sword_hitbox.copy().move(self.offset)
-                    pygame.draw.rect(self.display_surface, 'yellow', sword_rect )
+                # if isinstance(sprite, Player):
+                #     sword_rect = sprite.sword_hitbox.copy().move(self.offset)
+                #     pygame.draw.rect(self.display_surface, 'yellow', sword_rect )
                 
-                pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
+                # pygame.draw.circle(self.display_surface, BLUE_PLAYER, sprite.rect.midbottom + sprite.ground_offset + self.offset, 5)
 
         

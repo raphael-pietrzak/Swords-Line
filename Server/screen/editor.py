@@ -1,17 +1,15 @@
-import time
 import pygame, sys
-from pygame import Vector2 as vector
 from random import choice, randint
 
 from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
 from entities.player import Goblin, Knight
-from entities.sprites import Block, Flame, Tree
+from entities.sprites import  Flame, Tree
 from entities.houses import House
 from network.server import Server
 from classes.ping import FPSCounter
-from menu.online_indicator import OnlineIndicator
+
 
 class Editor:
     def __init__(self, switch):
@@ -33,15 +31,14 @@ class Editor:
         self.animations = Graphics().animations
 
         # map
-        self.generate_map()
+        self.build_map()
 
         # server
         self.server = Server()
 
 
-
     # imports
-    def generate_map(self):
+    def build_map(self):
         
         for _ in range(100):
             Tree((randint(-900, 900), randint(-900, 900)), self.animations['tree'], self.animations['tree_fire'], [self.all_sprites, self.trees_sprites], self.collision_sprites)
@@ -57,7 +54,6 @@ class Editor:
             Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house, self.collision_sprites)]
         self.offline_player_index = 0
         self.player = self.offline_players[self.offline_player_index]
-
 
 
     # events
@@ -76,15 +72,11 @@ class Editor:
 
                 if event.key == pygame.K_ESCAPE:
                     self.server.close()
-                    self.switch_screen("menu")
+                    self.switch_screen("home")
 
                 if event.key == pygame.K_h:
                     self.all_sprites.hitbox_active = not self.all_sprites.hitbox_active
 
-                if event.key == pygame.K_v:
-                    for house in self.houses_sprites:
-                        house.is_visible = not house.is_visible
-            
                 if event.key == pygame.K_o:
                     self.server.toggle()
 
@@ -94,7 +86,6 @@ class Editor:
                         self.offline_player_index = 0
                     self.player = self.offline_players[self.offline_player_index]
 
-    
     def update_players_from_keyboard(self):
         keys = pygame.key.get_pressed()
         inputs = []
@@ -115,17 +106,7 @@ class Editor:
                 self.player.inputs = inputs
             else:
                 player.inputs = []
-
-
-    # def update_house_visibility(self, player):
-    #     for house in self.houses_sprites:
-    #         distance = vector(player.rect.center).distance_to(vector(house.rect.center))
-    #         if distance < house.radius:
-    #             house.is_visible = True
-    #             break
     
-
-    # server events
     def update_players_from_server(self):
         # Utilisation conseillée :
         new_players = self.server.get_new_clients()
@@ -152,12 +133,10 @@ class Editor:
             if not player: continue
             player.inputs = data['inputs']
         
-    
     def send_player_data(self):
         message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
         self.server.send(message, 'UDP')
     
-
     def generate_player(self):
         faction = choice(['knight', 'goblin'])
 
@@ -200,13 +179,16 @@ class Editor:
         for house in self.houses_sprites:
             house.is_visible = False
 
-
     def get_damage(self):
         damage_sprites = pygame.sprite.spritecollide(self.player, self.damage_sprites, False, pygame.sprite.collide_mask)
         for sprite in damage_sprites:
             if not sprite.attack_cooldown.active:
                 self.player.take_damage(sprite.damage)
                 sprite.attack_cooldown.activate()
+
+    def check_game_end(self):
+        pass
+
 
     # display
     def update(self, dt):
@@ -233,71 +215,3 @@ class Editor:
         self.server.online_indicator.draw()
 
         
-
-
-
-########################################################################################################
-
-    
-
-
-
-
-    def regenerate_player(self, player, house):
-        player.regenerate(house.healing_amount)
-
-
-
-
-    def check_collision(self):
-        for player in self.player_sprites:
-            activate_cooldown = False
-
-            collision_players = [pnj for pnj in self.player_sprites if pnj != player and player.sword_hitbox.colliderect(pnj.hitbox)]
-            for sprite in collision_players:
-                if player.status == 'attack' and not player.damage_cooldown.active:
-                    activate_cooldown = True
-                    sprite.take_damage(player.damage)
-            
-            collision_trees = [tree for tree in self.trees_sprites if player.sword_hitbox.colliderect(tree.hitbox)]
-            for sprite in collision_trees:
-                if player.status == 'attack' and not player.damage_cooldown.active:
-                    activate_cooldown = True
-                    sprite.burn()
-
-            collision_houses = [house for house in self.houses_sprites if player.sword_hitbox.colliderect(house.hitbox)]
-            for sprite in collision_houses:
-                if player.status == 'attack' and not player.damage_cooldown.active:
-                    if sprite.faction != player.faction:
-                        activate_cooldown = True
-                        sprite.take_damage(player.damage)
-
-            if activate_cooldown:
-                player.damage_cooldown.activate()
-
-            collision_sprites = pygame.sprite.spritecollide(player, self.all_sprites, False, pygame.sprite.collide_mask)
-            for sprite in collision_sprites:
-                if sprite != player:
-                    if sprite in self.houses_sprites and sprite.faction == player.faction and not sprite.regeneration_cooldown.active:
-                        sprite.regeneration_cooldown.activate()
-                        self.regenerate_player(player, self.knight_house)
-
-            player_houses = [house for house in self.houses_sprites if house.faction == player.faction]
-            self.update_house_visibility(player, player_houses)
-
-
-    def get_winner(self):
-        if self.is_one_faction_remaining():
-            text = "YOU WIN"
-            print(text)
-            self.switch_screen("menu")
-    
-    def is_one_faction_remaining(self):
-        if len(self.houses_sprites) <= 1:
-            house = self.houses_sprites.sprites()[0]
-            for player in self.player_sprites:
-                if player.faction != house.faction:
-                    player.respawn_point = None
-                    return False
-            return True
-        return False
