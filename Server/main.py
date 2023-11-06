@@ -15,11 +15,13 @@ class Main:
         self.clock = pygame.time.Clock()
         self.menu = GameMenu(self.switch_screen)
         self.screen = self.menu
+        self.servers = []
+        self.servers_menu = ServersMenu(self.switch_screen, self.servers)
 
     def switch_screen(self, screen):
         match screen:
             case 'client': self.screen = Editor(self.switch_screen)
-            case 'servers': self.screen = ServersMenu(self.switch_screen)
+            case 'servers': self.screen = self.servers_menu
             case 'settings': self.screen = SettingsMenu(self.switch_screen)
             case 'home': self.screen = self.menu
 

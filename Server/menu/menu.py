@@ -20,9 +20,15 @@ class ButtonGroup(pygame.sprite.Group):
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND) if hover else pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         self.hover = hover
     
-    def update(self):
+    def update_sprite_pos(self, vector):
+        for sprite in self:
+            sprite.rect.center += vector
+            sprite.pos += vector
+    
+    def draw(self):
         for sprite in self:
             sprite.draw()
+
         self.is_hovering()
 
 

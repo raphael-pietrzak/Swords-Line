@@ -48,7 +48,7 @@ class SettingsMenu:
     # update
     def update(self, dt):
         self.display_surface.fill(MENU_BG_COLOR)
-        self.buttons.update()
+        self.buttons.draw()
         self.event_loop()
 
     

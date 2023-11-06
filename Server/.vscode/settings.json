@@ -6,8 +6,9 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        ".vscode": true,
-        "**/__pycache__": true
+        ".gitignore": true,
+        "**/__pycache__": true,
+        ".vscode": true
     },
     "hide-files.files": [],
     "workbench.colorCustomizations": {
