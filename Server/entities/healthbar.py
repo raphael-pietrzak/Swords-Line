@@ -105,3 +105,29 @@ class TreeBreakBar:
         rect.width = current_width
         pygame.draw.rect(self.image, 'red', rect, 2)
     
+
+
+
+class LifesBar:
+    def __init__(self, pos, lifes):
+        self.display_suface = pygame.display.get_surface()
+        self.heart_image = pygame.image.load('graphics/Hearts/Heart.png')
+        self.heart_image = pygame.transform.scale(self.heart_image, (50, 50))
+        self.heart_broken_image = pygame.image.load('graphics/Hearts/Heart-Broken.png')
+        self.heart_broken_image = pygame.transform.scale(self.heart_broken_image, (50, 50))
+        self.lifes = lifes
+        self.rect = pygame.Rect(pos, (100, 10))
+
+    
+    def hit(self):
+        self.lifes -= 1
+        if self.lifes < 0:
+            self.lifes = 0
+
+    def draw(self):
+        for i in range(self.lifes):
+            self.display_suface.blit(self.heart_image, self.rect.move(55 * i, 0))
+        
+        for i in range(self.lifes, 3):
+            self.display_suface.blit(self.heart_broken_image, self.rect.move(55 * i, 0))
+        

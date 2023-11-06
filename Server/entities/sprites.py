@@ -154,7 +154,7 @@ class DeadHead(Animated):
 class Flame(Animated):
     def __init__(self, pos, frames, group):
         super().__init__(pos, frames, group)
-        self.damage = 2
+        self.damage = 20
         self.attack_cooldown = Cooldown(20)
     
     def update(self, dt):

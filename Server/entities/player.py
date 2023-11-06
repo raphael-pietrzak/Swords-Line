@@ -4,14 +4,14 @@ import uuid
 import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
-from entities.healthbar import HealthBar
+from entities.healthbar import HealthBar, LifesBar
 from entities.sprites import Animated, DeadHead
 from classes.time import Cooldown
 
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, frames, group, house, collision_sprites):
+    def __init__(self, pos, frames, group, house, collision_sprites, lifes=3):
         super().__init__(group)
         self.display_surface = pygame.display.get_surface()
         self.player_surface = pygame.Surface(frames[0].get_size(), pygame.SRCALPHA)
@@ -59,6 +59,11 @@ class Player(pygame.sprite.Sprite):
         # hitbox
         self.hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 40, 70)
         self.sword_hitbox = pygame.rect.Rect(self.rect.x, self.rect.y, 30, 30)
+
+        # lifes
+        self.lifes = lifes
+        self.lifes_bar = LifesBar((50, 50), lifes)
+        self.dead = False
     
 
     def get_position(self):
@@ -156,10 +161,19 @@ class Player(pygame.sprite.Sprite):
     def take_damage(self, amount):
         self.healthbar.current_health -= amount
         self.healthbar.current_health = max(0, self.healthbar.current_health)
+        self.check_death()
+        
+    
+    def check_death(self):
         if self.healthbar.current_health <= 0:
             DeadHead(self.pos, self.group[0])
-            self.__init__(self.respawn_point, self.frames, self.group, self.house, self.collision_sprites) if self.respawn_point else self.kill()
-    
+            self.lifes -= 1
+
+            if self.lifes <= 0:
+                self.lifes_bar.lifes = 0
+                self.dead = True
+            else:
+                self.__init__(self.respawn_point, self.frames, self.group, self.house, self.collision_sprites, self.lifes) 
 
     def update_house_visibility(self):
         distance_to_house = vector(self.rect.center).distance_to(vector(self.house.rect.center))
@@ -198,8 +212,8 @@ class Player(pygame.sprite.Sprite):
 
 
 class Goblin(Player):
-    def __init__(self, pos, frames, group, house, collision_sprites):
-        super().__init__(pos, frames, group, house, collision_sprites)
+    def __init__(self, pos, frames, group, house, collision_sprites, lifes=3):
+        super().__init__(pos, frames, group, house, collision_sprites, lifes)
         self.faction = 'goblin'
 
     def attack_tree(self, tree):
@@ -207,6 +221,6 @@ class Goblin(Player):
 
 
 class Knight(Player):
-    def __init__(self, pos, frames, group, house, collision_sprites):
-        super().__init__(pos, frames, group, house, collision_sprites)
+    def __init__(self, pos, frames, group, house, collision_sprites, lifes=3):
+        super().__init__(pos, frames, group, house, collision_sprites, lifes)
         self.faction = 'knight'

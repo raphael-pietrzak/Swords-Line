@@ -9,7 +9,7 @@ from entities.sprites import  Flame, Tree
 from entities.houses import House
 from network.server import Server
 from classes.ping import FPSCounter
-
+from menu.end_party import EndPartySurface
 
 class Editor:
     def __init__(self, switch):
@@ -17,6 +17,8 @@ class Editor:
         self.display_surface = pygame.display.get_surface()
         self.switch_screen = switch
         self.fps_counter = FPSCounter('MAIN')
+        self.end_game_screen = EndPartySurface(self.switch_screen)
+        self.is_game_over = False
 
         # groups
         self.all_sprites = CameraGroup()
@@ -85,6 +87,9 @@ class Editor:
                     if self.offline_player_index >= len(self.offline_players):
                         self.offline_player_index = 0
                     self.player = self.offline_players[self.offline_player_index]
+
+            if self.is_game_over:
+                self.end_game_screen.event_loop(event)
 
     def update_players_from_keyboard(self):
         keys = pygame.key.get_pressed()
@@ -187,7 +192,12 @@ class Editor:
                 sprite.attack_cooldown.activate()
 
     def check_game_end(self):
-        pass
+        for player in self.player_sprites:
+            if player.dead:
+                self.is_game_over = True
+                player.kill()
+                break
+
 
 
     # display
@@ -203,6 +213,7 @@ class Editor:
         self.all_sprites.update(dt)
 
         self.get_damage()
+        self.check_game_end()
 
         self.send_player_data()
         self.server.update_indicator()
@@ -213,5 +224,7 @@ class Editor:
         self.display_surface.fill('beige')
         self.all_sprites.custom_draw(self.player.rect.center)
         self.server.online_indicator.draw()
+        self.end_game_screen.draw() if self.is_game_over else None
+        self.player.lifes_bar.draw()
 
         
