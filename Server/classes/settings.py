@@ -1,8 +1,5 @@
-
-ANIMATION_SPEED = 10
-
-HOST = "127.0.0.1"
-SERVER_IP = "0.0.0.0"
+SERVER_IP = "127.0.0.1"
+HOST = "0.0.0.0"
 UDP_PORT = 12345
 TCP_PORT = 54321
 
@@ -11,6 +8,9 @@ WINDOW_HEIGHT = 700
 
 BUFFER_SIZE = 1024
 ENCODING = 'utf-8'
+
+ANIMATION_SPEED = 10
+
 
 EDITOR_DATA = {
     1 : {'type' : 'decoration', 'name' : 'dead', 'grid' : (7, 2), 'path' : 'graphics/Dead_and_Fire/Dead/Dead.png'},
