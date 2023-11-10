@@ -1,5 +1,5 @@
 
-import json, select, socket, threading
+import json, socket, threading
 from classes.ping import FPSCounter
 from classes.settings import *
 
@@ -15,36 +15,36 @@ class TCPClient:
     def start(self):
         try:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((HOST, TCP_PORT))
+            self.client_socket.connect((SERVER_IP, TCP_PORT))
             self.client_socket.settimeout(1.0)
 
             self.receive_thread = threading.Thread(target=self.receive_messages, daemon=True)
             self.receive_thread.start()
-            
+
         except ConnectionRefusedError:
             print('Connexion refused TCP client')
             self.close()
 
+
     def receive_messages(self):
         while self.is_running:
             try:
-                # Utilisez select pour vérifier si des données sont disponibles à la lecture
-                rlist, _, _ = select.select([self.client_socket], [], [], 1.0)
+                
+                data = self.client_socket.recv(BUFFER_SIZE)
+                if not data:
+                    break
+                print('Reçu du server :', data.decode(ENCODING))
+                self.server_data = json.loads(data.decode(ENCODING))
 
-                if rlist:
-                    data = self.client_socket.recv(BUFFER_SIZE)
-                    if not data:
-                        break
-                    print('Reçu du server :', data.decode(ENCODING))
-                    self.server_data = json.loads(data.decode(ENCODING))
+                self.network_fps_counter.ping()
 
-                    self.network_fps_counter.ping()
-                else:
-                    # print('Pas de données TCP disponibles pour la lecture')
-                    pass
+            except TimeoutError:
+                continue
 
             except OSError:
-                print('Reception impossible TCP client')
+                break
+
+        self.close()
         print('Thread TCP client receive terminated')
     
 
@@ -57,3 +57,4 @@ class TCPClient:
         self.is_running = False
         if self.client_socket:
             self.client_socket.close()
+        print('TCP client properly closed')

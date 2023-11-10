@@ -51,7 +51,7 @@ class Editor:
             self.inputs.append("attack")
         
     def handle_communication(self):
-        self.client.send({'inputs': self.inputs, 'id': str(self.client.id)})
+        self.client.send({'inputs': self.inputs, 'id': str(self.client.id)}, 'UDP')
         data = self.client.get_server_data()
         
         trees = data['trees']

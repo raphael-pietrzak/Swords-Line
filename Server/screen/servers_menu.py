@@ -52,12 +52,12 @@ class ServersMenu:
                     
 
     def new_room(self):
-        self.editor1 = Editor(self.switch_screen)
-        self.server1 = self.editor1.server
-        self.server1_indicator = self.server1.online_indicator
+        # self.editor1 = Editor(self.switch_screen)
+        # self.server1 = self.editor1.server
+        # self.server1_indicator = self.server1.online_indicator
         margin = 80
         first_pos_y = self.offset_y + len(self.servers) * margin
-        self.servers.append(self.editor1)
+        # self.servers.append(self.editor1)
         self.server1_button = Button((WINDOW_WIDTH/2, first_pos_y), (WINDOW_WIDTH/2, 50), f'Room {len(self.servers)}', self.buttons)
         self.server1_on_off_button = Button((self.server1_button.rect.right + margin, first_pos_y), (50, 50), 'O', self.buttons)
         self.server1_delete_button = Button((self.server1_on_off_button.rect.right + margin, first_pos_y), (50, 50), 'D', self.buttons)
@@ -75,7 +75,7 @@ class ServersMenu:
     # update
     def update(self, dt):
         self.display_surface.fill(MENU_BG_COLOR)
-        self.server1.update_indicator()
+        # self.server1.update_indicator()
         self.server1_indicator.draw()
         self.buttons.draw()
         self.others_buttons.draw()

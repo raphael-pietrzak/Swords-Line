@@ -88,10 +88,11 @@ class Player(pygame.sprite.Sprite):
 
     
     def update_data(self, player_data):
-        self.pos = vector(player_data['position'])
-        self.healthbar.current_health = player_data['health']
-        self.status = player_data['status']
+        self.pos = vector(player_data['pos'])
+        self.color = player_data['color']
+        self.lifes = player_data['lifes']
         self.direction = player_data['direction']
+        self.status = player_data['status']
     
 
 

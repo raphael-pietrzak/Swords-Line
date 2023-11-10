@@ -51,9 +51,15 @@ class Editor:
         Flame((200, 400), self.animations['fire'], [self.all_sprites, self.damage_sprites])
 
 
-        self.offline_players = [
-            Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites], self.goblin_house, self.collision_sprites),
-            Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house, self.collision_sprites)]
+        self.player1 = Goblin((300, 300), self.animations['goblin'], [self.all_sprites, self.player_sprites], self.goblin_house, self.collision_sprites)
+        self.player2 = Knight((200, 200), self.animations['knight'], [self.all_sprites, self.player_sprites], self.knight_house, self.collision_sprites)
+        self.offline_players = [self.player1, self.player2]
+
+        self.players['player1'] = self.player1
+        self.players['player2'] = self.player2
+        
+
+
         self.offline_player_index = 0
         self.player = self.offline_players[self.offline_player_index]
 
@@ -116,16 +122,17 @@ class Editor:
         # Utilisation conseillée :
         new_players = self.server.get_new_clients()
         if new_players:
-            print(f'[ NEW PLAYER ] : {uuid}')
             for uuid in new_players:
+                print(f'[ NEW PLAYER ] : {uuid}')
                 player = self.generate_player()
                 self.players[uuid] = player
+                self.server.send({'data': 'TCP message init'}, 'TCP')
             
 
         del_players = self.server.get_del_clients()
         if del_players:
-            print(f'[ DEL PLAYER ] : {del_players}')
             for uuid in del_players:
+                print(f'[ DEL PLAYER ] : {uuid}')
                 player = self.players.get(uuid)
                 if not player: break
                 self.player_sprites.remove(player)
@@ -139,7 +146,8 @@ class Editor:
             player.inputs = data['inputs']
         
     def send_player_data(self):
-        message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
+        # message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
+        message = {uuid: player.get_data() for uuid, player in self.players.items()}
         self.server.send(message, 'UDP')
     
     def generate_player(self):
@@ -194,8 +202,9 @@ class Editor:
     def check_game_end(self):
         for player in self.player_sprites:
             if player.dead:
-                self.is_game_over = True
-                player.kill()
+                # self.is_game_over = True
+                # self.server.close()
+                # player.kill()
                 break
 
 
@@ -216,14 +225,14 @@ class Editor:
         self.check_game_end()
 
         self.send_player_data()
-        self.server.update_indicator()
+        # self.server.update_indicator()
         self.fps_counter.ping()
 
 
         # draw
         self.display_surface.fill('beige')
         self.all_sprites.custom_draw(self.player.rect.center)
-        self.server.online_indicator.draw()
+        # self.server.online_indicator.draw()
         self.end_game_screen.draw() if self.is_game_over else None
         self.player.lifes_bar.draw()
 

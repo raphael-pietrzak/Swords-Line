@@ -5,10 +5,16 @@ from network.clientUDP import UDPClient
 
 class Client:
     def __init__(self):
+        self.udp_client = None
+        self.tcp_client = None
         self.uuid = str(uuid.uuid4()).split('-')[0]
         self.start()
     
     def start(self):
+        if self.udp_client:
+            self.udp_client.close()
+        if self.tcp_client:
+            self.tcp_client.close()
         self.udp_client = UDPClient()
         self.tcp_client = TCPClient()
         self.tcp_client.start()
@@ -23,8 +29,8 @@ class Client:
 
         
         match protocol:
-            case 'TCP': self.tcp_client.send({self.uuid: message})
-            case 'UDP': self.udp_client.client_data = {self.uuid: message}
+            case 'TCP': self.tcp_client.send({'uuid': self.uuid, 'message': message})
+            case 'UDP': self.udp_client.client_data = {'uuid': self.uuid, 'message': message}
             case _: return None
     
     

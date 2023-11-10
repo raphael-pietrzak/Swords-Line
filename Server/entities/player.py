@@ -186,6 +186,17 @@ class Player(pygame.sprite.Sprite):
         if distance_to_house < self.house.heal_radius and not self.heal_cooldown.active:
             self.heal(self.house.heal_amount)
             self.heal_cooldown.activate()
+    
+    def get_data(self):
+        player_dict = {}
+        player_dict['pos'] = self.get_position()
+        player_dict['color'] = self.color
+        player_dict['lifes'] = self.lifes
+        player_dict['direction'] = self.direction
+        player_dict['status'] = self.status
+        player_dict['faction'] = self.faction
+
+        return player_dict
 
 
 
