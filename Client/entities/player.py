@@ -3,7 +3,7 @@ import uuid
 import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
-from entities.hud import HealthBar
+from entities.healthbar import HealthBar
 from classes.time import Cooldown
 
 

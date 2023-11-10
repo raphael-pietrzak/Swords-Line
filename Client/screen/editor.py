@@ -15,6 +15,7 @@ class Editor:
 
         self.client = Client()
 
+
         self.players = {}
         self.trees = {}
         self.houses = {}
@@ -52,9 +53,11 @@ class Editor:
     def handle_communication(self):
         self.client.send({'inputs': self.inputs, 'id': str(self.client.id)})
         data = self.client.get_server_data()
+        
         trees = data['trees']
         players = data['players']
         houses = data['houses']
+
         self.id = data['id']
         self.faction = data['players'][self.id]['faction']
 
@@ -95,6 +98,7 @@ class Editor:
         self.all_sprites.update(dt)
         
         self.display_surface.fill('aquamarine3')
-        self.handle_communication()
+        # self.handle_communication()
 
-        self.all_sprites.custom_draw(self.players[self.id].rect.center)
+        self.all_sprites.draw(self.display_surface)
+        # self.all_sprites.custom_draw(self.players[self.id].rect.center)

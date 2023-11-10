@@ -4,7 +4,7 @@ from pygame import Vector2 as vector
 from classes.settings import *
 from random import uniform, randint, choice
 from classes.imports import get_frames_from_sprite_sheet
-from entities.hud import TreeBreakBar
+from entities.healthbar import TreeBreakBar
 
 
 

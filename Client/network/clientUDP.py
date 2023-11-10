@@ -4,8 +4,8 @@ import socket
 import threading
 import time
 
-from ping import FPSCounter
-from settings import *
+from classes.ping import FPSCounter
+from classes.settings import *
 
 
 
@@ -20,7 +20,7 @@ class UDPClient(threading.Thread):
 
 
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.client_socket.settimeout(1.0)
+        self.client_socket.settimeout(10.0)
 
         self.receive_thread = threading.Thread(target=self.receive, daemon=True)
         self.receive_thread.start()
@@ -43,6 +43,7 @@ class UDPClient(threading.Thread):
 
             except OSError:
                 print('Connexion lost UDP client')
+                
         print('Thread UDP client send terminated')
 
 
@@ -54,7 +55,7 @@ class UDPClient(threading.Thread):
                 time.sleep(0.001)
 
             except TimeoutError:
-                print('Back to the menu')
+                print('Timeout UDP client receive')
                 self.close()
 
             except Exception as e:

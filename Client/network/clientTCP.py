@@ -1,7 +1,7 @@
 
 import json, select, socket, threading
-from ping import FPSCounter
-from settings import *
+from classes.ping import FPSCounter
+from classes.settings import *
 
 
 class TCPClient:
@@ -20,6 +20,7 @@ class TCPClient:
 
             self.receive_thread = threading.Thread(target=self.receive_messages, daemon=True)
             self.receive_thread.start()
+            
         except ConnectionRefusedError:
             print('Connexion refused TCP client')
             self.close()

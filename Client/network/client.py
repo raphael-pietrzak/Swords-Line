@@ -1,6 +1,6 @@
 import uuid
-from Network.Client.clientTCP import TCPClient
-from Network.Client.clientUDP import UDPClient
+from network.clientTCP import TCPClient
+from network.clientUDP import UDPClient
 
 
 class Client:
