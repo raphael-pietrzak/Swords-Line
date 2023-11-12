@@ -1,4 +1,5 @@
 
+import uuid
 import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
@@ -65,6 +66,7 @@ class Tree(pygame.sprite.Sprite):
         self.collision_sprites = collision_sprites
         self.pos = vector(pos)
         self.frames = frames
+        self.uuid = str(uuid.uuid4()).split('-')[0]
         self.fire_frames = fire_frames
         self.index = randint(0, 399)/100
         self.animation_frames = {
@@ -113,6 +115,11 @@ class Tree(pygame.sprite.Sprite):
         # if self.tree_break_bar.ended:
         #     self.death()
         pass
+    
+    def get_data(self):
+        return {
+            'pos': [int(self.pos[0]), int(self.pos[1])],
+        }
 
     def draw(self, offset):
         pos = self.rect.topleft + offset
@@ -154,8 +161,14 @@ class DeadHead(Animated):
 class Flame(Animated):
     def __init__(self, pos, frames, group):
         super().__init__(pos, frames, group)
+        self.uuid = str(uuid.uuid4()).split('-')[0]
         self.damage = 20
         self.attack_cooldown = Cooldown(20)
+
+    def get_data(self):
+        return {
+            'pos': [int(self.pos[0]), int(self.pos[1])],
+        }
     
     def update(self, dt):
         self.animate(dt)

@@ -192,6 +192,7 @@ class Player(pygame.sprite.Sprite):
         player_dict['pos'] = self.get_position()
         player_dict['color'] = self.color
         player_dict['lifes'] = self.lifes
+        player_dict['health'] = self.healthbar.current_health
         player_dict['direction'] = self.direction
         player_dict['status'] = self.status
         player_dict['faction'] = self.faction

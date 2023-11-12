@@ -35,9 +35,19 @@ class Client:
     
     
     def receive(self, protocol):
+
         match protocol:
-            case 'TCP': return self.tcp_client.server_data
-            case 'UDP': return self.udp_client.server_data
+            case 'TCP': data = self.tcp_client.server_data
+            case 'UDP': data = self.udp_client.server_data
+            case _: return None
+        
+        self.clear_data(protocol)
+        return data
+    
+    def clear_data(self, protocol):
+        match protocol:
+            case 'TCP': self.tcp_client.server_data = {}
+            case 'UDP': self.udp_client.server_data = {}
             case _: return None
 
 

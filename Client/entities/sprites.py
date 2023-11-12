@@ -75,3 +75,11 @@ class Tree(Animated):
     def draw(self, offset):
         pos = self.rect.topleft + offset
         self.display_surface.blit(self.image, pos)
+
+
+class Flame(Animated):
+    def __init__(self, pos, frames, group):
+        super().__init__(pos, frames, group)
+    
+    def update(self, dt):
+        self.animate(dt)

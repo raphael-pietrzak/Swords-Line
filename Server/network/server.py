@@ -3,7 +3,6 @@ from network.serverUDP import UDPServer
 
 class Server:
     def __init__(self):
-
         self.udp_server = UDPServer()
         self.udp_server.start()
 
@@ -12,9 +11,9 @@ class Server:
 
         
     
-    def send(self, message, protocol):
+    def send(self, message, protocol, uuid=None):
         match protocol:
-            case 'TCP': self.tcp_server.send(message)
+            case 'TCP': self.tcp_server.send(message, uuid)
             case 'UDP': self.udp_server.server_data = message
             case _: return None
                 

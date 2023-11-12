@@ -60,6 +60,11 @@ python3 main.py
 cd .. pour revenir dans le dossier parent
 
 
+Network Branch :
+
+- Arbres que j'envoies dans un init en TCP à chaque nouvelle connection
+- Houses
+- Fires
 
 
 Next Features :

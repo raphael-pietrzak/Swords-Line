@@ -56,9 +56,16 @@ class TCPServer(threading.Thread):
             clients_data[client.uuid] = client.client_data
         return clients_data
     
-    def send(self, message):
+    def send(self, message, uuid=None):
+        if len(message) >= BUFFER_SIZE:
+            print("Message trop long")
+            return
+        
         for client in self.clients:
-            client.send(message)
+            if client.uuid == uuid or uuid is None:
+                client.waiting_data.append(message)
+
+
 
     def close(self):
         for client in self.clients:
@@ -78,9 +85,15 @@ class ClientHandler(threading.Thread):
 
         self.uuid = uuid
         self.client_data = {}
+        self.waiting_data = []
 
     def run(self):
         while self.is_running:
+
+            if self.waiting_data:
+                message = self.waiting_data.pop(0)
+                self.send(message)
+
             try:
                 data = self.client_socket.recv(BUFFER_SIZE)
                 if not data: break 
@@ -95,7 +108,6 @@ class ClientHandler(threading.Thread):
         print('Thread TCP server receive terminated')
         self.close()
         
-
     
     def send(self, message):
         data = json.dumps(message)

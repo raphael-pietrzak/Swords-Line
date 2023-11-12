@@ -1,9 +1,12 @@
 import json, socket, sys, threading, time, pygame
+from entities.sprites import Tree, Flame
+from classes.camera import CameraGroup
 from network.client import Client
 from classes.ping import FPSCounter
 from classes.settings import *
 from entities.player import Gobelin, Knight
 from classes.imports import Graphics
+from entities.houses import House
         
 
 
@@ -15,9 +18,16 @@ class MainClient:
         pygame.init()
         self.client = Client()
         self.players = {}
+        self.trees = {}
+        self.houses = {}
+        self.flames = {}
 
         self.animations = Graphics().animations
+        self.all_sprites = CameraGroup()
         self.players_sprites = pygame.sprite.Group()
+        self.trees_sprites = pygame.sprite.Group()
+        self.houses_sprites = pygame.sprite.Group()
+        self.damage_sprites = pygame.sprite.Group()
 
         self.inputs = []
 
@@ -59,19 +69,46 @@ class MainClient:
         if keys[pygame.K_RMETA] and not self.inputs:
             self.inputs.append("attack")
 
-    
 
 
     def draw(self):
-        players = self.client.receive('UDP')
+        data_tcp = self.client.receive('TCP')
 
+        if data_tcp:
+            if data_tcp['type'] == 'tree':
+                for uuid, tree_data in data_tcp['data'].items():
+                    if uuid not in self.trees:
+                        self.trees[uuid] = Tree(tree_data['pos'], self.animations['tree'], [self.trees_sprites, self.all_sprites])
+                    else:
+                        self.trees[uuid].update_data(tree_data)
+            
+            if data_tcp['type'] == 'house':
+                for uuid, house_data in data_tcp['data'].items():
+                    if uuid not in self.houses:
+                        self.houses[uuid] = House(house_data['pos'], self.animations['knight_house'], [self.houses_sprites, self.all_sprites], 'Knight')
+                    else:
+                        self.houses[uuid].update_data(house_data)
+            
+            if data_tcp['type'] == 'damage':
+                for uuid, damage_data in data_tcp['data'].items():
+                    if uuid not in self.flames:
+                        self.flames[uuid] = Flame(damage_data['pos'], self.animations['fire'], [self.damage_sprites, self.all_sprites])
+                    else:
+                        self.flames[uuid].update_data(damage_data)
+
+
+                        
+                
+
+        players = self.client.receive('UDP')
+        
         for uuid, player_data in players.items():
             if uuid not in self.players:
                 new_player = None
                 match player_data['faction']:
-                    case 'goblin': new_player = Gobelin(player_data['pos'], self.animations['goblin'], self.players_sprites)
-                    case 'knight': new_player = Knight(player_data['pos'], self.animations['knight'], self.players_sprites)
-                    case _: new_player = Gobelin(player_data['pos'], self.animations['goblin'], self.players_sprites)
+                    case 'goblin': new_player = Gobelin(player_data['pos'], self.animations['goblin'], [self.players_sprites, self.all_sprites])
+                    case 'knight': new_player = Knight(player_data['pos'], self.animations['knight'], [self.players_sprites, self.all_sprites])
+                    case _: new_player = Gobelin(player_data['pos'], self.animations['goblin'], [self.players_sprites, self.all_sprites])
                 self.players[uuid] = new_player
             else:
                 self.players[uuid].update_data(player_data)
@@ -92,8 +129,12 @@ class MainClient:
 
         self.draw()
         
-        self.players_sprites.update(dt)
-        self.players_sprites.draw(self.display_surface)
+        self.all_sprites.update(dt)
+        # self.all_sprites.draw(self.display_surface)
+
+        if self.client.uuid in  self.players:
+            self.all_sprites.custom_draw(self.players[self.client.uuid].rect.center)
+
 
         self.fps_counter.ping()
 

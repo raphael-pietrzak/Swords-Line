@@ -34,6 +34,7 @@ class House(Sprite):
         self.healthbar =  HealthBar(pos, 'red')
         self.hitbox = self.rect
         self.regeneration_cooldown = Cooldown(10)
+        self.is_ghost = False
     
     def update_data(self, house_data):
         # { "id": 1, "faction": "goblin", "position": [250, 180], "health": 100, visible": True }

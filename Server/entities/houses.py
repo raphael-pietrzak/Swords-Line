@@ -1,4 +1,5 @@
 
+import uuid
 import pygame
 from entities.sprites import Sprite
 from entities.player import HealthBar
@@ -32,12 +33,21 @@ class House(pygame.sprite.Sprite):
         self.hitbox.midbottom = self.rect.midbottom + self.ground_offset
         self.is_visible = False
 
+        self.uuid = str(uuid.uuid4()).split('-')[0]
+
     
     def take_damage(self, damage):
         if self.is_visible:
             self.healthbar.current_health -= damage
             if self.healthbar.current_health <= 0:
                 self.kill()
+    
+
+    def get_data(self):
+        return {
+            'pos': [int(self.pos[0]), int(self.pos[1])],
+            'faction': self.faction
+        }
 
     
     def draw(self, offset):

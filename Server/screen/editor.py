@@ -1,9 +1,11 @@
+import json
 import pygame, sys
 from random import choice, randint
 
 from classes.settings import *
 from classes.imports import Graphics
 from classes.camera import CameraGroup
+from classes.functions.split_dictionary import split_dictionary
 from entities.player import Goblin, Knight
 from entities.sprites import  Flame, Tree
 from entities.houses import House
@@ -126,7 +128,42 @@ class Editor:
                 print(f'[ NEW PLAYER ] : {uuid}')
                 player = self.generate_player()
                 self.players[uuid] = player
-                self.server.send({'data': 'TCP message init'}, 'TCP')
+
+                data = {tree.uuid : tree.get_data() for tree in self.trees_sprites}
+
+                data = split_dictionary(data, 1000)
+
+                for chunk in data:
+                    data_dict = {
+                        'type': 'tree',
+                        'data': chunk
+                    }
+                    self.server.send(data_dict, 'TCP', uuid)
+                
+                data = {house.uuid : house.get_data() for house in self.houses_sprites}
+
+                data = split_dictionary(data, 1000)
+
+                for chunk in data:
+                    data_dict = {
+                        'type': 'house',
+                        'data': chunk
+                    }
+                    self.server.send(data_dict, 'TCP', uuid)
+                
+                data = {damage.uuid : damage.get_data() for damage in self.damage_sprites}
+
+                data = split_dictionary(data, 1000)
+
+                for chunk in data:
+                    data_dict = {
+                        'type': 'damage',
+                        'data': chunk
+                    }
+                    self.server.send(data_dict, 'TCP', uuid)
+
+
+
             
 
         del_players = self.server.get_del_clients()
@@ -193,11 +230,12 @@ class Editor:
             house.is_visible = False
 
     def get_damage(self):
-        damage_sprites = pygame.sprite.spritecollide(self.player, self.damage_sprites, False, pygame.sprite.collide_mask)
-        for sprite in damage_sprites:
-            if not sprite.attack_cooldown.active:
-                self.player.take_damage(sprite.damage)
-                sprite.attack_cooldown.activate()
+        for player in self.player_sprites:
+            damage_sprites = pygame.sprite.spritecollide(player, self.damage_sprites, False, pygame.sprite.collide_mask) 
+            for sprite in damage_sprites:
+                if not sprite.attack_cooldown.active:
+                    player.take_damage(sprite.damage)
+                    sprite.attack_cooldown.activate()
 
     def check_game_end(self):
         for player in self.player_sprites:

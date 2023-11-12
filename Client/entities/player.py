@@ -93,6 +93,7 @@ class Player(pygame.sprite.Sprite):
         self.lifes = player_data['lifes']
         self.direction = player_data['direction']
         self.status = player_data['status']
+        self.healthbar.current_health = player_data['health']
     
 
 
