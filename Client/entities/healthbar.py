@@ -7,10 +7,13 @@ from classes.settings import *
 from pygame import Vector2 as vector
 
 class HealthBar(pygame.sprite.Sprite):
-    def __init__(self, pos, color):
+    def __init__(self, color, pos):
         super().__init__()
-        self.image = pygame.Surface((120, 30), pygame.SRCALPHA)
-        self.pos = (18, 10)
+        # main setup
+        self.image = pygame.Surface((118, 30), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.midtop = pos
+        self.pos = pos
 
         # health
         self.max_health = 100
@@ -23,53 +26,57 @@ class HealthBar(pygame.sprite.Sprite):
         self.border = BLUE_CONTOUR if color == 'blue' else RED_CONTOUR
         self.color = BLUE_PLAYER if color == 'blue' else RED_PLAYER
 
+        # level square
+        self.level_rect = pygame.Rect((0, 0), (18, 20))
+        self.level_rect.midleft = self.rect.midleft
+        self.bg_level_rect = self.level_rect.copy().inflate(-4, -4)
+
+        # white bg
+        self.white_bg = pygame.Surface((self.max_width, 10))
+        self.white_bg_rect = self.white_bg.get_rect(midleft=self.level_rect.midright + vector(-1, 0))
+        self.white_bg.fill('white')
+        self.white_bg.set_alpha(80)
+
+
         # black bg
         self.black_bg = pygame.Surface((self.max_width, 10))
+        self.black_bg_rect = self.black_bg.get_rect(midleft=self.level_rect.midright + vector(-1, 0))
         self.black_bg.fill('black')
         self.black_bg.set_alpha(80)
 
-        # rect
-        self.rect = pygame.Rect(self.pos, (self.max_width, 10))
-        self.level_rect = pygame.Rect(self.rect.topleft, (18, 20))
+        # health rect
+        self.health_rect = pygame.Rect((0, 0), (self.current_width, 7))
+        self.health_rect.midleft = self.level_rect.midright + vector(-3, -1)
 
-        
+        # level number
+        self.level_number = self.font.render(str(15), True, 'white')
+        self.level_number_shadow = self.font.render(str(15), True, self.border)
+        self.level_text_border = pygame.transform.scale(self.level_number_shadow, self.level_number_shadow.get_size() + vector(4, 4))
+        self.level_number_rect = self.level_number.get_rect(center=self.level_rect.center + vector(0, -5))
+
+
+
     
-    def draw_bar(self):
-        self.image = pygame.Surface((120, 30), pygame.SRCALPHA)
 
-        # support
-        self.image.blit(self.black_bg, self.rect)
-        pygame.draw.rect(self.image, self.border, self.rect, 2, 2)
-
-        # health
-        self.health_rect = pygame.Rect(self.rect.topleft, (self.current_health, 7)).move(0, 1)
-        self.health_rect.left = self.rect.left -2
-        pygame.draw.rect(self.image, self.color, self.health_rect, 8)
-
-        # level square
-        self.level_rect.midright = self.rect.midleft + vector(2, 0)
-        pygame.draw.rect(self.image, self.border, self.level_rect, 2, 2)
-        bg_level_rect = self.level_rect.copy().inflate(-4, -4)
-        pygame.draw.rect(self.image, self.color, bg_level_rect, 20)
-
-        # level text 
-        level = str(15)
-        offset = vector(0, -5)
-
-        level_text = self.font.render(level, True, 'white')
-        level_text_shadow = self.font.render(level, True, self.border)
-        level_text_border = pygame.transform.scale(level_text_shadow, level_text_shadow.get_size() + vector(4, 4))
+    def draw(self, surface):
+        if self.current_health >= self.max_width:
+            return 
         
-        self.level_rect = level_text.get_rect(center=self.level_rect.center + offset)
-        level_text_border_rect = level_text_border.get_rect(center=self.level_rect.center)
-        level_text_shadow_rect = level_text_shadow.get_rect(center=self.level_rect.center).move(0,3)
 
-        self.image.blit(level_text_border, level_text_border_rect)
-        self.image.blit(level_text_shadow, level_text_shadow_rect)
-        self.image.blit(level_text, self.level_rect)
-    
-    def update(self):
-        self.draw_bar()
+        self.current_width = self.max_width * self.current_health / self.max_health 
+        self.health_rect.width = self.current_width
+
+        # surface.blit(self.white_bg, self.white_bg_rect)
+        surface.blit(self.black_bg, self.black_bg_rect)
+        pygame.draw.rect(surface, self.border, self.black_bg_rect, 2, 2)
+        pygame.draw.rect(surface, self.color, self.health_rect)
+
+        pygame.draw.rect(surface, self.border, self.level_rect, 2, 2)
+        pygame.draw.rect(surface, self.color, self.bg_level_rect)
+
+        surface.blit(self.level_number_shadow, self.level_number_rect.move(0,3))
+        surface.blit(self.level_text_border, self.level_number_rect.move(-2,-2))
+        surface.blit(self.level_number, self.level_number_rect)
 
 
 
@@ -105,3 +112,25 @@ class TreeBreakBar:
         rect.width = current_width
         pygame.draw.rect(self.image, 'red', rect, 2)
     
+
+class LifesBar:
+    def __init__(self, pos, lifes):
+        self.display_suface = pygame.display.get_surface()
+        self.heart_image = pygame.image.load('graphics/Hearts/Heart.png')
+        self.heart_image = pygame.transform.scale(self.heart_image, (50, 50))
+        self.heart_broken_image = pygame.image.load('graphics/Hearts/Heart-Broken.png')
+        self.heart_broken_image = pygame.transform.scale(self.heart_broken_image, (50, 50))
+        self.lifes = lifes
+        self.rect = pygame.Rect(pos, (100, 10))
+
+    
+    def update(self, lifes):
+        self.lifes = lifes
+
+    def draw(self):
+        for i in range(self.lifes):
+            self.display_suface.blit(self.heart_image, self.rect.move(55 * i, 0))
+        
+        for i in range(self.lifes, 3):
+            self.display_suface.blit(self.heart_broken_image, self.rect.move(55 * i, 0))
+        

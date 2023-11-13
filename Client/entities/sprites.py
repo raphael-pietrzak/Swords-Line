@@ -50,7 +50,7 @@ class Tree(Animated):
         self.alive_frames = frames
         tree_fire = EDITOR_DATA[6]
         self.frames_fire = get_frames_from_sprite_sheet(tree_fire['path'], tree_fire['grid'][0], tree_fire['grid'][1])
-
+        self.ground_offset = vector(0, -30)
         midtop = self.rect.midtop
         self.tree_break_bar = TreeBreakBar(midtop)
         self.status = 'idle'

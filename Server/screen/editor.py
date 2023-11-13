@@ -184,7 +184,12 @@ class Editor:
         
     def send_player_data(self):
         # message = {uuid: {'color': player.color, 'pos': player.get_position()} for uuid, player in self.players.items()}
-        message = {uuid: player.get_data() for uuid, player in self.players.items()}
+        message_players = {uuid: player.get_data() for uuid, player in self.players.items()}
+        message_houses = {house.uuid : house.get_data() for  house in self.houses_sprites}
+        message = {
+            'players': message_players,
+            'houses': message_houses
+        }
         self.server.send(message, 'UDP')
     
     def generate_player(self):
@@ -267,11 +272,15 @@ class Editor:
         self.fps_counter.ping()
 
 
-        # draw
+        self.draw()
+
+
+    def draw(self):
         self.display_surface.fill('beige')
         self.all_sprites.custom_draw(self.player.rect.center)
         # self.server.online_indicator.draw()
         self.end_game_screen.draw() if self.is_game_over else None
         self.player.lifes_bar.draw()
+
 
         

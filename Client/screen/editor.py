@@ -1,39 +1,68 @@
-import sys, pygame
-import threading
-import time
-from network.client import Client
+import json, socket, sys, threading, time, pygame
+from entities.sprites import Tree, Flame
 from classes.camera import CameraGroup
-from entities.player import Player, Gobelin, Knight
-from entities.houses import House
-from entities.sprites import Tree
+from network.client import Client
+from classes.ping import FPSCounter
 from classes.settings import *
+from entities.player import Gobelin, Knight
 from classes.imports import Graphics
+from entities.houses import House
+        
+
 
 class Editor:
     def __init__(self):
-        self.display_surface = pygame.display.get_surface()
 
+        self.fps_counter = FPSCounter('MAIN')
+
+        pygame.init()
         self.client = Client()
-
-
         self.players = {}
         self.trees = {}
         self.houses = {}
+        self.flames = {}
 
+        self.animations = Graphics().animations
         self.all_sprites = CameraGroup()
+        self.players_sprites = pygame.sprite.Group()
+        self.trees_sprites = pygame.sprite.Group()
+        self.houses_sprites = pygame.sprite.Group()
+        self.damage_sprites = pygame.sprite.Group()
 
-        self.graphics = Graphics().animations
+        self.inputs = []
+
+        
+        self.display_surface = pygame.display.get_surface()
+        self.player = Gobelin((300, 300), self.animations['goblin'], [self.players_sprites, self.all_sprites])
+        self.player.uuid = self.client.uuid
+        self.players[self.client.uuid] = self.player
 
 
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print("[ EVENT ] : Window closed")
+                self.client.close()
                 pygame.quit()
                 sys.exit()
-        
-        self.get_keyboard_inputs()
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    print('[ EVENT ] : Return pressed')
+                    self.client.send('Client Pressed Return', 'TCP')
+                    if not self.client.is_online():
+                        self.client.start()
 
-    
+            if event.type == pygame.VIDEORESIZE:
+                self.display_surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                
+                global WINDOW_WIDTH, WINDOW_HEIGHT
+
+                WINDOW_WIDTH, WINDOW_HEIGHT = event.w, event.h
+
+                        
+
+
     def get_keyboard_inputs(self):
         keys = pygame.key.get_pressed()
 
@@ -49,56 +78,93 @@ class Editor:
             self.inputs.append("down")
         if keys[pygame.K_RMETA] and not self.inputs:
             self.inputs.append("attack")
-        
-    def handle_communication(self):
-        self.client.send({'inputs': self.inputs, 'id': str(self.client.id)}, 'UDP')
-        data = self.client.get_server_data()
-        
-        trees = data['trees']
+
+
+
+    def draw(self):
+        data_tcp = self.client.receive('TCP')
+
+        if data_tcp:
+            if data_tcp['type'] == 'tree':
+                for uuid, tree_data in data_tcp['data'].items():
+                    if uuid not in self.trees:
+                        self.trees[uuid] = Tree(tree_data['pos'], self.animations['tree'], [self.trees_sprites, self.all_sprites])
+                    else:
+                        self.trees[uuid].update_data(tree_data)
+            
+            if data_tcp['type'] == 'house':
+                for uuid, house_data in data_tcp['data'].items():
+                    if uuid not in self.houses:
+                        match house_data['faction']:
+                            case 'goblin': self.houses[uuid] = House(house_data['pos'], self.animations['goblin_house'], [self.houses_sprites, self.all_sprites], 'Goblin', self.player)
+                            case 'knight': self.houses[uuid] = House(house_data['pos'], self.animations['knight_house'], [self.houses_sprites, self.all_sprites], 'Knight', self.player)
+                    else:
+                        self.houses[uuid].update_data(house_data)
+            
+            if data_tcp['type'] == 'damage':
+                for uuid, damage_data in data_tcp['data'].items():
+                    if uuid not in self.flames:
+                        self.flames[uuid] = Flame(damage_data['pos'], self.animations['fire'], [self.damage_sprites, self.all_sprites])
+                    else:
+                        self.flames[uuid].update_data(damage_data)
+
+
+
+        data = self.client.receive('UDP')
+
+        if not data:
+            return
         players = data['players']
         houses = data['houses']
-
-        self.id = data['id']
-        self.faction = data['players'][self.id]['faction']
-
-        for tree in trees:
-            if tree['id'] in self.trees:
-                self.trees[tree['id']].update_data(tree)
-            else:
-                self.trees[tree['id']] = Tree(tree['position'], self.graphics['tree'], self.all_sprites)
-                self.trees[tree['id']].update_data(tree)
-
-        for player in players:
-            if player['id'] in self.players:
-                self.players[player['id']].update_data(player)
-            else:
-                graphics = self.graphics['goblin']
-                match player['faction']:
-                    case 'Goblin': graphics = self.graphics['goblin']
-                    case 'Knight': graphics = self.graphics['knight']
-                        
-                self.players[player['id']] = Player(player['position'], graphics, self.all_sprites)
-                self.players[player['id']].update_data(player)
-
-
-            
-        for house in houses:
-            if house['id'] in self.houses:
-                self.houses[house['id']].update_data(house)
-            else:
-                graphics = self.graphics['goblin_house']
-                match house['faction']:
-                    case 'Goblin': graphics = self.graphics['goblin_house']
-                    case 'Knight': graphics = self.graphics['knight_house']
-                self.houses[house['id']] = House(house['position'], graphics, self.all_sprites, house['faction'])
-                self.houses[house['id']].update_data(house)
-            
-    def update(self, dt):
-        self.event_loop()
-        self.all_sprites.update(dt)
         
-        self.display_surface.fill('aquamarine3')
-        # self.handle_communication()
+        for uuid, player_data in players.items():
+            if uuid not in self.players:
+                new_player = None
+                match player_data['faction']:
+                    case 'goblin': new_player = Gobelin(player_data['pos'], self.animations['goblin'], [self.players_sprites, self.all_sprites])
+                    case 'knight': new_player = Knight(player_data['pos'], self.animations['knight'], [self.players_sprites, self.all_sprites])
+                    case _: new_player = Gobelin(player_data['pos'], self.animations['goblin'], [self.players_sprites, self.all_sprites])
+                self.players[uuid] = new_player
+            else:
+                self.players[uuid].update_data(player_data)
 
-        self.all_sprites.draw(self.display_surface)
-        # self.all_sprites.custom_draw(self.players[self.id].rect.center)
+        
+        for uuid, house_data in houses.items():
+            if uuid not in self.houses:
+                match house_data['faction']:
+                    case 'goblin': self.houses[uuid] = House(house_data['pos'], self.animations['goblin_house'], [self.houses_sprites, self.all_sprites], 'Goblin', self.player)
+                    case 'knight': self.houses[uuid] = House(house_data['pos'], self.animations['knight_house'], [self.houses_sprites, self.all_sprites], 'Knight', self.player)
+            else:
+                self.houses[uuid].update_data(house_data)
+
+
+        
+
+
+
+
+
+
+    def update(self, dt):
+        # Ping
+
+        self.event_loop()
+        self.display_surface.fill('aquamarine3')
+
+        self.get_keyboard_inputs()
+        self.client.send({'inputs': self.inputs}, 'UDP')
+
+        self.draw()
+        
+        self.all_sprites.update(dt)
+
+        if self.client.uuid in  self.players:
+            self.all_sprites.custom_draw(self.player.rect.center)
+
+        self.player.lifes_bar.draw()
+
+        self.fps_counter.ping()
+
+
+
+

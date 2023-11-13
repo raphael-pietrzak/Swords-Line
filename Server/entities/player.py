@@ -171,6 +171,7 @@ class Player(pygame.sprite.Sprite):
 
             if self.lifes <= 0:
                 self.lifes_bar.lifes = 0
+                self.lifes = 0
                 self.dead = True
             else:
                 self.__init__(self.respawn_point, self.frames, self.group, self.house, self.collision_sprites, self.lifes) 

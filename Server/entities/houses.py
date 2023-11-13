@@ -46,7 +46,10 @@ class House(pygame.sprite.Sprite):
     def get_data(self):
         return {
             'pos': [int(self.pos[0]), int(self.pos[1])],
-            'faction': self.faction
+            'faction': self.faction,
+            'health': self.healthbar.current_health,
+            'visible': self.is_visible,
+            
         }
 
     

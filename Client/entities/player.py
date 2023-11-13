@@ -3,7 +3,7 @@ import uuid
 import pygame
 from pygame import Vector2 as vector
 from classes.settings import *
-from entities.healthbar import HealthBar
+from entities.healthbar import HealthBar, LifesBar
 from classes.time import Cooldown
 
 
@@ -47,9 +47,11 @@ class Player(pygame.sprite.Sprite):
         }
 
         # health
-        self.healthbar = HealthBar(self.rect.topleft, 'blue')
+        self.healthbar = HealthBar('blue', (self.rect.width // 2, 10))
         self.damage = 10
         self.damage_cooldown = Cooldown(20)
+        self.lifes = 3
+        self.lifes_bar = LifesBar((50, 50), self.lifes)
 
         # time
 
@@ -99,21 +101,18 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self, offset):
         self.player_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
-        pos = self.rect.topleft
         self.player_surface.blit(self.image, (0, 0))
-        if self.healthbar.current_health < self.healthbar.max_width:
-            self.healthbar.update()
-            self.player_surface.blit(self.healthbar.image, (30, 0))
+
         
-        self.display_surface.blit(self.player_surface, pos + offset)
-        sword_offset_rect = self.sword_hitbox.copy().move(offset)
-        hitbox_offset_rect = self.hitbox.copy().move(offset)
-        # pygame.draw.rect(self.display_surface, 'purple', sword_offset_rect)
-        # pygame.draw.rect(self.display_surface, 'red', hitbox_offset_rect)
+        self.healthbar.draw(self.player_surface)
+        
+        pos = self.rect.topleft + offset
+        self.display_surface.blit(self.player_surface, pos)
         
 
     def update(self, dt):
         self.rect.center = self.pos
+        self.lifes_bar.update(self.lifes)
         self.animate(dt)
 
 
