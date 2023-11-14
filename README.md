@@ -58,9 +58,16 @@ python3 main.py
 
 # Preview
 
+### SERVER 
+
 ![Alt text](<Server/graphics/Readme/Screenshot 2023-11-14 at 16.53.53.png>)
 
 ![Alt text](<Server/graphics/Readme/Screenshot 2023-11-14 at 16.54.12.png>)
+
+
+### CLIENT 
+
+![Alt text](<Server/graphics/Readme/Screenshot 2023-11-14 at 18.13.03.png>)
 
 cd .. pour revenir dans le dossier parent
 
