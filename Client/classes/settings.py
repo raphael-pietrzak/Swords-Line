@@ -30,21 +30,6 @@ EDITOR_DATA = {
     12 : {'type' : 'building', 'name' : 'knight_house', 'grid' : None, 'path' : 'graphics/Factions/Knights/Knight_House.png'},
 }
 
-# {
-#   "players": [
-#     { "id": 1, "type": "knight", "position": [200, 300] },
-#     { "id": 2, "type": "goblin", "position": [400, 250] }
-#   ],
-#   "trees": [
-#     { "id": 1, "alive": [250, 180] },
-#     { "id": 2, "burning": [250, 180] }
-#   ],
-#   "resources": [
-#     { "id": 1, "type": "wood", "position": [250, 180] },
-#     { "id": 2, "type": "wood", "position": [420, 320] },
-#     { "id": 3, "type": "wood", "position": [600, 100] }
-#   ]
-# }
 
 
 
