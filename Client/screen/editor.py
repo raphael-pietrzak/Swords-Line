@@ -149,7 +149,7 @@ class Editor:
         # Ping
 
         self.event_loop()
-        self.display_surface.fill('aquamarine3')
+        self.display_surface.fill(EDITOR_BG_COLOR)
 
         self.get_keyboard_inputs()
         self.client.send({'inputs': self.inputs}, 'UDP')
