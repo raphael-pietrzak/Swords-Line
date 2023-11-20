@@ -5,7 +5,7 @@ class Carrousel:
 
     
     def event_loop(self):
-
+        pass
 
     def next_screen(self):
         self.current_screen_index = (self.current_screen_index + 1) % len(self.screens)
@@ -17,7 +17,7 @@ class Carrousel:
         pagination = " ".join(["●" if i == self.current_screen_index else "○" for i in range(len(self.screens))])
         print(f"Pagination : {pagination}")
 
-        
+
 
 
 
