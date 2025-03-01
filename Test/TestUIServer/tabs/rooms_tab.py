@@ -18,7 +18,7 @@ class RoomsTab:
         ]
         
         # État interne
-        self.rooms = []  # Référence aux rooms du serveur
+        self.rooms = {}  # Référence aux rooms du serveur
         self.selected_room = None
         self.viewing_room_details = False
         
@@ -72,7 +72,7 @@ class RoomsTab:
         
         # Créer les boutons dynamiques pour chaque room
         self.room_buttons = []
-        for i, room in enumerate(self.rooms):
+        for i, (room_id, room) in enumerate(self.rooms.items()):
             y_pos = 120 + i * 60
             
             # Bouton "Voir"
@@ -132,8 +132,8 @@ class RoomsTab:
             button.draw(screen, self.font_small)
         
         # En-tête du tableau
-        headers = ["Room", "Joueurs", "Actions"]
-        header_widths = [400, 150, 300]
+        headers = ["Room ID", "Room", "Joueurs", "Actions"]
+        header_widths = [100, 300, 150, 300]
         header_x = 50
         
         for i, header in enumerate(headers):
@@ -149,12 +149,16 @@ class RoomsTab:
             no_rooms = self.font_normal.render("Aucune room active", True, TEXT_COLOR)
             screen.blit(no_rooms, (self.width // 2 - no_rooms.get_width() // 2, 200))
         else:
-            for i, room in enumerate(self.rooms):
+            for i, (room_id, room) in enumerate(self.rooms.items()):
                 y_pos = 120 + i * 60
+                
+                # ID de la room
+                room_id_text = self.font_normal.render(str(room_id), True, TEXT_COLOR)
+                screen.blit(room_id_text, (50, y_pos + 20))
                 
                 # Nom de la room
                 room_name = self.font_normal.render(room.name, True, TEXT_COLOR)
-                screen.blit(room_name, (50, y_pos + 20))
+                screen.blit(room_name, (150, y_pos + 20))
                 
                 # Nombre de joueurs
                 player_count = self.font_normal.render(f"{room.player_count}/{room.max_players}", True, TEXT_COLOR)
