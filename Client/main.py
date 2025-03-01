@@ -10,7 +10,7 @@ class Main:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption("SWORDS LINE")
         self.clock = pygame.time.Clock()
-        self.screen = Caroussel()
+        self.screen = Editor()
 
     
     def run(self):
