@@ -73,3 +73,12 @@ class TabButton(Button):
         text_x = self.rect.x + (self.rect.width - button_text.get_width()) // 2
         text_y = self.rect.y + (self.rect.height - button_text.get_height()) // 2
         screen.blit(button_text, (text_x, text_y))
+
+
+class UIContext:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.font_title = pygame.font.SysFont('Arial', 32)
+        self.font_normal = pygame.font.SysFont('Arial', 20)
+        self.font_small = pygame.font.SysFont('Arial', 16)

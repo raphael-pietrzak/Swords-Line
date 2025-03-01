@@ -4,11 +4,14 @@ from settings import *
 from ui_components import Button
 
 class DashboardTab:
-    def __init__(self, width, height, font_normal, font_small):
-        self.width = width
-        self.height = height
-        self.font_normal = font_normal
-        self.font_small = font_small
+    def __init__(self, ui_context, server_data):
+        self.width = ui_context.width
+        self.height = ui_context.height
+        self.font_normal = ui_context.font_normal
+        self.font_small = ui_context.font_small
+
+        # Données du serveur
+        self.server_data = server_data
         
         # Boutons spécifiques à cet onglet
         self.buttons = [
@@ -57,10 +60,10 @@ class DashboardTab:
         if self.server_running:
             print("Message global envoyé")
     
-    def update(self, server_data):
+    def update(self):
         # Mettre à jour les statistiques à partir des données du serveur
-        self.stats['total_players'] = len(server_data.players)
-        self.stats['total_rooms'] = len(server_data.rooms)
+        self.stats['total_players'] = len(self.server_data.players)
+        self.stats['total_rooms'] = len(self.server_data.rooms)
         
         if self.server_running:
             self.stats['uptime'] = int(time.time() - self.uptime_start)

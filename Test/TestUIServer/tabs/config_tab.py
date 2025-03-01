@@ -4,11 +4,14 @@ from ui_components import Button
 
 
 class ConfigTab:
-    def __init__(self, width, height, font_normal, font_small):
-        self.width = width
-        self.height = height
-        self.font_normal = font_normal
-        self.font_small = font_small
+    def __init__(self, ui_context, server_data):
+        self.width = ui_context.width
+        self.height = ui_context.height
+        self.font_normal = ui_context.font_normal
+        self.font_small = ui_context.font_small
+
+        # Données du serveur
+        self.server_data = server_data
         
         # Paramètres de configuration
         self.config = {
@@ -21,13 +24,13 @@ class ConfigTab:
         
         # Boutons spécifiques à cet onglet
         self.buttons = [
-            Button(pygame.Rect(width - 250, 60, 200, 40), "Sauvegarder", self.save_config)
+            Button(pygame.Rect(self.width - 250, 60, 200, 40), "Sauvegarder", self.save_config)
         ]
     
     def save_config(self):
         print("Configuration sauvegardée")
     
-    def update(self, server_data):
+    def update(self):
         # Mettre à jour l'état des boutons
         for button in self.buttons:
             button.update(pygame.mouse.get_pos())

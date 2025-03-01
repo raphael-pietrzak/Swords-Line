@@ -26,24 +26,53 @@ class Player:
     def move_to(self, x, y):
         self.position = (x, y)
 
+
 class ServerData:
     def __init__(self):
-        self.players = []
-        self.rooms = []
+        self.rooms = {}  # {room_id: Room}
+        self.players = {}  # {player_id: Player}
+    
+    def add_room(self, room):
+        self.rooms[room.id] = room
+    
+    def remove_room(self, room_id):
+        if room_id in self.rooms:
+            del self.rooms[room_id]
+    
+    def create_room(self, max_players=8):
+        room_id = f"room_{len(self.rooms)}"
+        room = Room(room_id, f"Room {len(self.rooms) + 1}", max_players)
+        self.add_room(room)
+        return room
+    
+    def get_room(self, room_id):
+        return self.rooms.get(room_id)
+    
+    def add_player(self, player):
+        self.players[player.id] = player
+    
+    def remove_player(self, player_id):
+        if player_id in self.players:
+            del self.players[player_id]
+    
+    def get_player(self, player_id):
+        return self.players.get(player_id)
+    
+    def get_all_rooms(self):
+        return list(self.rooms.values())
+
+    def get_all_players(self):
+        return list(self.players.values())
     
     def generate_demo_data(self):
+
         character_types = ["warrior", "mage", "archer", "healer"]
+
+        for i in range(5):
+            room = Room(f"Room {i}", f"room_{i}")
+            self.add_room(room)
         
-        for i in range(3):
-            room = Room(f"room_{i}", f"Room {i+1}")
-            self.rooms.append(room)
-        
-        for i in range(15):
-            player = Player(f"player_{i}", f"Player{i}", random.choice(character_types))
-            self.players.append(player)
-            
-            if i < 10:
-                room_idx = random.randint(0, len(self.rooms) - 1)
-                room = self.rooms[room_idx]
-                player.room_id = room.id
-                room.players.append(player)
+        for i in range(10):
+            player = Player(f"player_{i}", f"Player {i}", random.choice(character_types))
+            self.add_player(player)
+    

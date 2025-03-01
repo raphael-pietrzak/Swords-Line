@@ -2,16 +2,19 @@ import pygame
 from settings import *
 from ui_components import Button
 class RoomsTab:
-    def __init__(self, width, height, font_normal, font_small, font_title):
-        self.width = width
-        self.height = height
-        self.font_normal = font_normal
-        self.font_small = font_small
-        self.font_title = font_title
+    def __init__(self, ui_context, server_data):
+        self.width = ui_context.width
+        self.height = ui_context.height
+        self.font_normal = ui_context.font_normal
+        self.font_small = ui_context.font_small
+        self.font_title = ui_context.font_title
+
+        # Données du serveur
+        self.server_data = server_data
         
         # Boutons spécifiques à cet onglet
         self.buttons = [
-            Button(pygame.Rect(width - 250, 60, 200, 40), "Nouvelle Room", self.create_room)
+            Button(pygame.Rect(self.width - 250, 60, 200, 40), "Nouvelle Room", self.create_room)
         ]
         
         # État interne
@@ -24,13 +27,13 @@ class RoomsTab:
         
         # Boutons pour la vue détaillée
         self.detail_buttons = [
-            Button(pygame.Rect(50, height - 80, 150, 40), "Retour", self.back_to_rooms),
-            Button(pygame.Rect(220, height - 80, 200, 40), "Message à la room", self.message_room),
-            Button(pygame.Rect(440, height - 80, 150, 40), "Supprimer room", self.delete_room, color=ERROR_COLOR)
+            Button(pygame.Rect(50, self.height - 80, 150, 40), "Retour", self.back_to_rooms),
+            Button(pygame.Rect(220, self.height - 80, 200, 40), "Message à la room", self.message_room),
+            Button(pygame.Rect(440, self.height - 80, 150, 40), "Supprimer room", self.delete_room, color=ERROR_COLOR)
         ]
     
     def create_room(self):
-        print("Nouvelle room créée")
+        self.server_data.create_room()
     
     def view_room(self, room):
         self.selected_room = room
@@ -55,8 +58,8 @@ class RoomsTab:
         if self.selected_room and player:
             print(f"Joueur {player.name} expulsé de la room {self.selected_room.name}")
     
-    def update(self, server_data):
-        self.rooms = server_data.rooms
+    def update(self):
+        self.rooms = self.server_data.rooms
         
         # Mettre à jour l'état des boutons
         for button in self.buttons:
