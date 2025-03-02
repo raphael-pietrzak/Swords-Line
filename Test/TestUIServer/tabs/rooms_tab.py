@@ -52,6 +52,7 @@ class RoomsTab:
         if self.selected_room:
             print(f"Room supprimée: {self.selected_room.name}")
             self.viewing_room_details = False
+            self.server_data.delete_room(self.selected_room.id)
             self.selected_room = None
     
     def expel_player(self, player):
@@ -86,7 +87,7 @@ class RoomsTab:
             delete_btn = Button(
                 pygame.Rect(self.width - 230, y_pos + 10, 150, 40), 
                 "Supprimer", 
-                lambda r=room: self.delete_room(),
+                lambda r=room: self.server_data.delete_room(r.id),
                 color=ERROR_COLOR
             )
             

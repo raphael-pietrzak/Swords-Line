@@ -14,24 +14,16 @@ class LogsTab:
         # Données du serveur
         self.server_data = server_data
         
-        self.logs = []
+        self.logs = server_data.logs
         self.max_logs = 100
         self.scroll_position = 0
         
         # Boutons spécifiques à cet onglet
         self.buttons = [
-            Button(pygame.Rect(self.width - 250, 60, 200, 40), "Effacer les logs", self.clear_logs)
+            Button(pygame.Rect(self.width - 250, 60, 200, 40), "Effacer les logs", self.server_data.clear_logs)
         ]
     
-    def add_log(self, message, log_type="INFO"):
-        timestamp = time.strftime("%H:%M:%S", time.localtime())
-        self.logs.append({"time": timestamp, "type": log_type, "message": message})
-        if len(self.logs) > self.max_logs:
-            self.logs.pop(0)
-    
-    def clear_logs(self):
-        self.logs = []
-        self.scroll_position = 0
+
     
     def update(self):
         # Mettre à jour l'état des boutons

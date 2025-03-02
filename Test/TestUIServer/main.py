@@ -58,8 +58,8 @@ class TabbedServerUI:
 
         
         # Ajouter quelques logs de démonstration
-        self.logs_tab.add_log("Serveur initialisé", "INFO")
-        self.logs_tab.add_log("En attente de démarrage...", "INFO")
+        self.server_data.add_log("Serveur initialisé", "INFO")
+        self.server_data.add_log("En attente de démarrage...", "INFO")
     
     def switch_tab(self, tab):
         if self.active_tab != tab:
