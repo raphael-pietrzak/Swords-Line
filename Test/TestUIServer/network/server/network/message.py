@@ -1,0 +1,102 @@
+import time
+
+class MessageHandler:
+    def __init__(self, server):
+        self.server = server
+
+    def handle_message(self, client_id, player, message):
+        print(message)
+        handlers = {
+            "CREATE_ROOM": self._handle_create_room,
+            "JOIN_ROOM": self._handle_join_room,
+            "START_GAME": self._handle_start_game,
+            "GAME_ACTION": self._handle_game_action,
+            "CHAT_MESSAGE": self._handle_chat_message
+        }
+        
+        handler = handlers.get(message.get("type"))
+        data = message.get("data")
+        if handler:
+            handler(client_id, player, data)
+
+    def _handle_create_room(self, client_id, player, message):
+        room_id, room = self.server.room_manager.create_room(message.get("room_name"))
+        room.add_player(player)
+        self.server.send_to_client(client_id, {
+            "type": "ROOM_CREATED",
+            "room_id": room_id,
+            "room_name": room.name
+        })
+
+    def _handle_join_room(self, client_id, player, message):
+        room_id = message.get("room_id")
+        if room_id in self.server.room_manager.rooms:
+            room = self.server.room_manager.rooms[room_id]
+            if room.add_player(player):
+                self.server.send_to_client(client_id, {
+                    "type": "JOINED_ROOM",
+                    "room_id": room_id,
+                    "room_info": room.get_status()
+                })
+                self.server.broadcast_to_room(room_id, {
+                    "type": "PLAYER_JOINED",
+                    "player": player.get_info()
+                }, exclude=client_id)
+            else:
+                self.server.send_to_client(client_id, {
+                    "type": "ERROR",
+                    "message": "Impossible de rejoindre la room"
+                })
+        else:
+            self.server.send_to_client(client_id, {
+                "type": "ERROR",
+                "message": "Room inexistante"
+            })
+
+    def _handle_start_game(self, client_id, player, message):
+        room_id = message.get("room_id")
+        if room_id in self.server.room_manager.rooms:
+            room = self.server.room_manager.rooms[room_id]
+            if room.get_player_by_id(client_id):
+                player.is_ready = True
+                all_ready = all(p.is_ready for p in room.players)
+                if all_ready and len(room.players) >= 2:
+                    room.start_game()
+                    self.server.broadcast_to_room(room_id, {
+                        "type": "GAME_STARTED",
+                        "game_info": {
+                            "players": [p.get_info() for p in room.players],
+                            "current_turn": 1,
+                            "current_player": room.players[0].id
+                        }
+                    })
+
+    def _handle_game_action(self, client_id, player, message):
+        room_id = message.get("room_id")
+        action = message.get("action")
+        
+        if room_id in self.server.room_manager.rooms:
+            room = self.server.room_manager.rooms[room_id]
+            if room.handle_player_action(client_id, action):
+                self.server.broadcast_to_room(room_id, {
+                    "type": "ACTION_PERFORMED",
+                    "player_id": client_id,
+                    "action": action,
+                    "game_state": room.game_logic.get_game_state()
+                })
+
+    def _handle_chat_message(self, client_id, player, message):
+        room_id = message.get("room_id")
+        text = message.get("text")
+        
+        if room_id in self.server.room_manager.rooms:
+            room = self.server.room_manager.rooms[room_id]
+            if room.get_player_by_id(client_id):
+                room.add_chat_message(client_id, text)
+                self.server.broadcast_to_room(room_id, {
+                    "type": "CHAT_MESSAGE",
+                    "player_id": client_id,
+                    "player_name": player.name,
+                    "text": text,
+                    "timestamp": time.time()
+                })

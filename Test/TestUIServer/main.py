@@ -18,11 +18,6 @@ class TabbedServerUI:
         self.clock = pygame.time.Clock()
         self.running = True
         
-        # Polices
-        self.font_title = pygame.font.SysFont('Arial', 32)
-        self.font_normal = pygame.font.SysFont('Arial', 20)
-        self.font_small = pygame.font.SysFont('Arial', 16)
-        
         # Création des onglets
         self.tabs = [
             {"value": Tab.DASHBOARD, "text": "Dashboard", "active": True},
@@ -42,7 +37,7 @@ class TabbedServerUI:
 
 
         # Données du serveur (simulation)
-        self.server_data = ServerData()
+        self.server_data = ServerData() # Contient les logs, les salles, les joueurs
         self.server_data.generate_demo_data()
         
         # Onglet actif
@@ -54,8 +49,6 @@ class TabbedServerUI:
         self.rooms_tab = RoomsTab(self.ui_context, self.server_data)
         self.logs_tab = LogsTab(self.ui_context, self.server_data)
         self.config_tab = ConfigTab(self.ui_context, self.server_data)
-        
-
         
         # Ajouter quelques logs de démonstration
         self.server_data.add_log("Serveur initialisé", "INFO")

@@ -38,7 +38,8 @@ class DashboardTab:
         self.buttons[0].enabled = False  # Désactiver "Démarrer"
         self.buttons[1].enabled = True   # Activer "Arrêter"
         self.buttons[2].enabled = True   # Activer "Message"
-        
+
+        self.server_data.add_log("Serveur démarré")
         print("Serveur démarré")
     
     def stop_server(self):
@@ -47,7 +48,8 @@ class DashboardTab:
         self.buttons[0].enabled = True   # Activer "Démarrer"
         self.buttons[1].enabled = False  # Désactiver "Arrêter"
         self.buttons[2].enabled = False  # Désactiver "Message"
-        
+
+        self.server_data.add_log("Serveur arrêté")
         print("Serveur arrêté")
     
     def format_time(self, seconds):
