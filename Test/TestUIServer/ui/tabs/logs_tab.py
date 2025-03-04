@@ -1,7 +1,7 @@
 import pygame
 import time
 from settings import *
-from ui_components import Button
+from ui.components import Button
 
 
 class LogsTab:

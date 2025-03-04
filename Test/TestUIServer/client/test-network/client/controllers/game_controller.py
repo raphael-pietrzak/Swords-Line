@@ -1,4 +1,4 @@
-from models.player import Player
+from game.player import Player
 from views.screens.login_screen import LoginScreen
 from views.screens.character_screen import CharacterScreen
 from views.screens.lobby_screen import LobbyScreen

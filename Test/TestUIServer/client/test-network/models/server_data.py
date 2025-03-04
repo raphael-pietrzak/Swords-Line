@@ -1,43 +1,20 @@
 import time
 import random
-
-class Room:
-    def __init__(self, room_id, name, max_players=8):
-        self.id = room_id
-        self.name = name
-        self.max_players = max_players
-        self.players = []  # Liste des joueurs dans cette room
-        self.created_at = time.time()
-    
-    @property
-    def player_count(self):
-        return len(self.players)
-
-class Player:
-    def __init__(self, player_id, name, character_type=None):
-        self.id = player_id
-        self.name = name
-        self.character_type = character_type
-        self.position = (random.randint(50, 350), random.randint(50, 250))
-        self.room_id = None
-        self.connected_at = time.time()
-        self.level = random.randint(1, 10)
-    
-    def move_to(self, x, y):
-        self.position = (x, y)
-
+from game.room import Room
+from game.player import Player
+from rooms.room_manager import RoomManager
 
 class ServerData:
     def __init__(self):
         self.rooms = {}  # {room_id: Room}
         self.players = {}  # {player_id: Player}
-
         self.logs = [] # Liste des logs
         self.max_logs = 100
     
     # Rooms
     def add_room(self, room):
         self.rooms[room.id] = room
+        return room.id, room
     
     def delete_room(self, room_id):
         if room_id in self.rooms:
@@ -60,8 +37,9 @@ class ServerData:
 
     # Players
     def add_player(self, player):
-        self.players[player.id] = player
-    
+        if player.id not in self.players:
+            self.players[player.id] = player
+
     def remove_player(self, player_id):
         if player_id in self.players:
             del self.players[player_id]

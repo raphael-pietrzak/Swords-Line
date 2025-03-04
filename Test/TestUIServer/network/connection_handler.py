@@ -1,9 +1,10 @@
 import json
-from network.message import MessageHandler
-from player import Player
+from network.message_handler import MessageHandler
+from game.player import Player
 
 class ConnectionHandler:
-    def __init__(self, server):
+    def __init__(self, server, message_handler):
+        self.message_handler = message_handler
         self.server = server
         self.message_handler = MessageHandler(server)
 
@@ -18,12 +19,11 @@ class ConnectionHandler:
             if message["type"] == "JOIN":
                 player_name = message["data"]["name"]
                 player = Player(client_id, player_name)
+                self.server.add_player(player)
                 
-                self.server.send_to_client(client_id, {
-                    "type": "CONNECTED",
-                    "id": client_id,
-                    "name": player_name
-                })
+                data = { "client_id": client_id, "name": player_name }
+                self.server.send_message(client_id, "CONNECTED", data)
+                self.server.add_log(f"Player connected: {player_name} ({client_id})")
                 
                 while self.server.running:
                     data = conn.recv(4096).decode('utf-8')
@@ -38,8 +38,8 @@ class ConnectionHandler:
             self._cleanup_client(client_id, conn, room_id)
 
     def _cleanup_client(self, client_id, conn, room_id):
-        if room_id and room_id in self.server.room_manager.rooms:
-            self.server.room_manager.rooms[room_id].remove_player(client_id)
+        if room_id and room_id in self.server.rooms:
+            self.server.remove_player(client_id)
             self.server.broadcast_to_room(room_id, {
                 "type": "PLAYER_LEFT",
                 "player_id": client_id
@@ -48,4 +48,5 @@ class ConnectionHandler:
         if client_id in self.server.clients:
             conn.close()
             del self.server.clients[client_id]
+            self.server.add_log(f"Client disconnected: {client_id}")
             print(f"Client {client_id} déconnecté")

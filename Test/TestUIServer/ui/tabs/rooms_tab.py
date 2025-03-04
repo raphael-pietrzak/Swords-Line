@@ -1,6 +1,6 @@
 import pygame
 from settings import *
-from ui_components import Button
+from ui.components import Button
 class RoomsTab:
     def __init__(self, ui_context, server_data):
         self.width = ui_context.width

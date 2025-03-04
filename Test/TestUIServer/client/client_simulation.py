@@ -44,26 +44,30 @@ class ClientMessageSender:
             print("Erreur: Non connecté au serveur")
             return False
         
-        # Création du message formaté
-        message = {
-            "client_id": self.client_id,
-            "room_id": self.room_id,
-            "type": message_type,
-            "data": data,
-            "timestamp": time.time()
-        }
-        
         try:
-            # Conversion en JSON et envoi
-            message_json = json.dumps(message)
-            self.socket.sendall(message_json.encode('utf-8') + b'\n')  # Ajout délimiteur
-            print(f"Message envoyé: {message}")
+            message = {
+                "client_id": self.client_id,
+                "room_id": self.room_id,
+                "type": message_type,
+                "data": data,
+                "timestamp": time.time()
+            }
             
-            # Attente d'une réponse (optionnel)
-            response = self.socket.recv(4096).decode('utf-8')
-            print(f"Réponse du serveur: {response}")
-
-            self.message_handler.handle_message(self.client_id, None, json.loads(response))
+            message_json = json.dumps(message)
+            self.socket.sendall(message_json.encode('utf-8') + b'\n')
+            
+            # Gestion asynchrone de la réponse pour éviter le blocage de l'interface
+            self.socket.setblocking(False)
+            try:
+                response = self.socket.recv(4096).decode('utf-8')
+                if response:
+                    response = json.loads(response)
+                    self.message_handler.handle_message(self.client_id, None, response)
+            except:
+                pass
+            finally:
+                self.socket.setblocking(True)
+            
             return True
         except Exception as e:
             print(f"Erreur d'envoi: {e}")
@@ -76,18 +80,36 @@ class MessageHandler:
     def handle_message(self, client_id, player, message):
         """Traite un message reçu du serveur"""
         message_type = message["type"]
+        data = message["data"]
         
         if message_type == "CONNECTED":
-            print(f"Connecté en tant que {message['name']}")
+            print(f"Connecté en tant que {data['name']}")
         elif message_type == "ROOM_CREATED":
-            print(f"Room créée: {message['room_name']}")
-            self.server.set_room_id(message['room_id'])
+            print(f"Room créée: {data['room_name']}")
+            self.server.set_room_id(data['room_id'])
         elif message_type == "JOINED_ROOM":
-            print(f"Rejoins la room {message['room_id']}")
+            print(f"Rejoins la room {data['room_id']}")
         elif message_type == "ERROR":
-            print(f"Erreur: {message['message']}")
+            print(f"Erreur: {data['message']}")
         elif message_type == "PLAYER_JOINED":
-            print(f"Joueur rejoint: {message['name']}")
+            print(f"Joueur rejoint: {data['name']}")
+        elif message_type == "PLAYER_LEFT":
+            print(f"Joueur parti: {data['player_id']}")
+        else:
+            print(f"Message inconnu: {message}")
+
+def move_player_in_loop(client):
+    client.send_message("MOVE", {"direction": "UP"})
+    time.sleep(1)
+    client.send_message("MOVE", {"direction": "DOWN"})
+    time.sleep(1)
+    client.send_message("MOVE", {"direction": "LEFT"})
+    time.sleep(1)
+    client.send_message("MOVE", {"direction": "RIGHT"})
+    time.sleep(1)
+    for i in range(100):
+        client.send_message("MOVE", {"direction": "DOWN"})
+        time.sleep(0.1)
 
 # Exemples d'utilisation
 if __name__ == "__main__":
@@ -97,16 +119,14 @@ if __name__ == "__main__":
 
         # Simulation d'une session
         client.set_client_id("player123")
+        print("JOIN")
         client.send_message("JOIN", {"name": "Raphael"})
         input()
+        print("CREATE_ROOM")
         client.send_message("CREATE_ROOM", {"room_name": "Ma Room", "max_players": 4})
         input()
+        print("JOIN_ROOM")
+        print(client.room_id)
         client.send_message("JOIN_ROOM", {"room_id": client.room_id})
-        input()
-        # client.send_message("START_GAME", {})
-        input()
-        client.send_message("GAME_ACTION", {"action": "ATTACK", "target": "player456"})
-        input()
-        client.send_message("CHAT_MESSAGE", {"message": "Bonjour tout le monde!"})
-        input()
-        client.disconnect()
+        
+        move_player_in_loop(client)

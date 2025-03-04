@@ -1,6 +1,8 @@
-from room import GameRoom
-from game import GameState
+from game.room import Room
 import time
+from settings import GameState
+
+
 
 class RoomManager:
     def __init__(self):
@@ -10,7 +12,7 @@ class RoomManager:
     def create_room(self, room_name=None):
         print(f"Creating room with name: {room_name}")
         room_name = room_name or f"Room {self.next_room_id}"
-        room = GameRoom(self.next_room_id, room_name)
+        room = Room(self.next_room_id, room_name)
         self.rooms[self.next_room_id] = room
         room_id = self.next_room_id
         self.next_room_id += 1

@@ -1,21 +1,24 @@
-from enum import Enum
+from models.game import GameState
 import time
-from game import GameLogic, GameState
+import random
+import uuid
 
-class GameRoom:
-    def __init__(self, room_id, room_name, max_players=8):
-        self.id = room_id
+class Room:
+    def __init__(self, room_name, server_data, max_players=8):
+        self.server_data = server_data
+        self.server_data.add_room(self)
+        self.id = str(uuid.uuid4())[:5].upper()
         self.name = room_name
         self.max_players = max_players
-        self.players = []
+        self.players = self.server_data.players  # Dict: {player_id: Player}
         self.game_state = GameState.WAITING  # Enum: WAITING, STARTING, PLAYING, FINISHED
-        self.game_logic = GameLogic(self)
+        # self.game_logic = GameLogic(self)
         self.chat_messages = []
         self.created_at = time.time()
         self.started_at = None
         self.finished_at = None
         
-    def add_player(self, player):
+    def add_player(self, client_id, player):
         if len(self.players) < self.max_players and self.game_state == GameState.WAITING:
             self.players.append(player)
             return True
@@ -32,7 +35,7 @@ class GameRoom:
         if len(self.players) >= 2 and self.game_state == GameState.WAITING:
             self.game_state = GameState.STARTING
             self.started_at = time.time()
-            self.game_logic.initialize_game()
+            # self.game_logic.initialize_game()
             self.game_state = GameState.PLAYING
             return True
         return False
@@ -47,13 +50,19 @@ class GameRoom:
     
     def process_turn(self):
         if self.game_state == GameState.PLAYING:
-            game_over = self.game_logic.process_turn()
+            # game_over = self.game_logic.process_turn()
+            game_over = False
             if game_over:
                 self.end_game()
     
-    def handle_player_action(self, player_id, action):
-        if self.game_state == GameState.PLAYING:
-            return self.game_logic.handle_player_action(player_id, action)
+    def handle_player_action(self, player_id, data):
+        # if self.game_state == GameState.PLAYING:
+        direction = data.get('direction')
+        player = self.get_player_by_id(player_id)
+        if player:
+            player.move(direction)
+            return True
+            
         return False
     
     def add_chat_message(self, player_id, message):
@@ -82,3 +91,8 @@ class GameRoom:
             'created_at': self.created_at
         }
 
+    @property
+    def player_count(self):
+        return len(self.players)
+
+    

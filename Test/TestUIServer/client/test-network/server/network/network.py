@@ -5,7 +5,7 @@ import time
 from config import ServerConfig
 from room_manager import RoomManager
 from player import Player
-from network.connection import ConnectionHandler
+from network.connection_handler import ConnectionHandler
 
 
 
@@ -67,16 +67,29 @@ class NetworkServer:
                 if self.running:
                     print(f"Erreur lors de l'acceptation d'une connexion: {e}")
 
-    def send_to_client(self, client_id, message):
-        if client_id in self.clients:
-            conn, _ = self.clients[client_id]
-            try:
-                data = json.dumps(message).encode('utf-8')
-                conn.sendall(data)
-            except Exception as e:
-                print(f"Erreur lors de l'envoi au client {client_id}: {e}")
+    def send_message(self, client_id, message_type, data):
+         # Création du message formaté
+        message = {
+            "client_id": client_id,
+            "type": message_type,
+            "data": data,
+            "timestamp": time.time()
+        }
 
-    def broadcast_to_room(self, room_id, message, exclude=None):
+        try:
+            # Conversion en JSON et envoi
+            message_json = json.dumps(message)
+            conn, _ = self.clients[client_id]
+            conn.sendall(message_json.encode('utf-8') + b'\n')  # Ajout délimiteur
+            print(f"Message envoyé: {message}")
+        except Exception as e:
+            print(f"Erreur d'envoi: {e}")
+
+    def broadcast_to_room(self, room_id, message_type, data, exclude=None):
+        message = {
+            "type": message_type,
+            "data": data
+        }
         if room_id in self.room_manager.rooms:
             room = self.room_manager.rooms[room_id]
             for player in room.players:
