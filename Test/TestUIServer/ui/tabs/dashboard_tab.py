@@ -4,14 +4,14 @@ from settings import *
 from ui.components import Button
 
 class DashboardTab:
-    def __init__(self, ui_context, server_data):
+    def __init__(self, ui_context, server):
         self.width = ui_context.width
         self.height = ui_context.height
         self.font_normal = ui_context.font_normal
         self.font_small = ui_context.font_small
 
         # Données du serveur
-        self.server_data = server_data
+        self.server = server
         
         # Boutons spécifiques à cet onglet
         self.buttons = [
@@ -33,13 +33,13 @@ class DashboardTab:
         }
     
     def start_server(self):
+        self.server.start()
         self.server_running = True
         self.uptime_start = time.time()
         self.buttons[0].enabled = False  # Désactiver "Démarrer"
         self.buttons[1].enabled = True   # Activer "Arrêter"
         self.buttons[2].enabled = True   # Activer "Message"
-
-        self.server_data.add_log("Serveur démarré")
+        self.server.add_log("Serveur démarré")
         print("Serveur démarré")
     
     def stop_server(self):
@@ -49,7 +49,7 @@ class DashboardTab:
         self.buttons[1].enabled = False  # Désactiver "Arrêter"
         self.buttons[2].enabled = False  # Désactiver "Message"
 
-        self.server_data.add_log("Serveur arrêté")
+        self.server.add_log("Serveur arrêté")
         print("Serveur arrêté")
     
     def format_time(self, seconds):
@@ -64,8 +64,8 @@ class DashboardTab:
     
     def update(self):
         # Mettre à jour les statistiques à partir des données du serveur
-        self.stats['total_players'] = len(self.server_data.players)
-        self.stats['total_rooms'] = len(self.server_data.rooms)
+        self.stats['total_players'] = len(self.server.player_manager.players)
+        self.stats['total_rooms'] = len(self.server.room_manager.rooms)
         
         if self.server_running:
             self.stats['uptime'] = int(time.time() - self.uptime_start)

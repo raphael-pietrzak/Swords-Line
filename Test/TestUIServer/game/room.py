@@ -1,25 +1,24 @@
-from models.game import GameState
+from settings import GameState
 import time
 import random
 import uuid
 
 class Room:
-    def __init__(self, room_name, server_data, max_players=8):
-        self.server_data = server_data
-        self.server_data.add_room(self)
+    def __init__(self, room_name , max_players=8):
         self.id = str(uuid.uuid4())[:5].upper()
         self.name = room_name
         self.max_players = max_players
-        self.players = self.server_data.players  # Dict: {player_id: Player}
+        self.players = []
         self.game_state = GameState.WAITING  # Enum: WAITING, STARTING, PLAYING, FINISHED
         # self.game_logic = GameLogic(self)
         self.chat_messages = []
         self.created_at = time.time()
         self.started_at = None
         self.finished_at = None
+
         
-    def add_player(self, client_id, player):
-        if len(self.players) < self.max_players and self.game_state == GameState.WAITING:
+    def add_player(self, player):
+        if len(self.players) < self.max_players:
             self.players.append(player)
             return True
         return False

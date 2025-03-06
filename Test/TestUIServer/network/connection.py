@@ -1,10 +1,9 @@
 import json
-from network.message_handler import MessageHandler
+from network.controller import MessageHandler
 from game.player import Player
 
 class ConnectionHandler:
-    def __init__(self, server, message_handler):
-        self.message_handler = message_handler
+    def __init__(self, server):
         self.server = server
         self.message_handler = MessageHandler(server)
 
@@ -15,12 +14,12 @@ class ConnectionHandler:
         try:
             data = conn.recv(4096).decode('utf-8')
             message = json.loads(data)
-            print(f"Message reçu: {message}")
+
             if message["type"] == "JOIN":
                 player_name = message["data"]["name"]
-                player = Player(client_id, player_name)
-                self.server.add_player(player)
+                player = self.server.player_manager.create_player(client_id, player_name)
                 
+                # Send connected message
                 data = { "client_id": client_id, "name": player_name }
                 self.server.send_message(client_id, "CONNECTED", data)
                 self.server.add_log(f"Player connected: {player_name} ({client_id})")
@@ -33,7 +32,7 @@ class ConnectionHandler:
                     message = json.loads(data)
                     self.message_handler.handle_message(client_id, player, message)
         except Exception as e:
-            print(f"Erreur avec le client {client_id}: {e}")
+            self.server.add_log(f"Error with client {client_id}: {e}")
         finally:
             self._cleanup_client(client_id, conn, room_id)
 
@@ -49,4 +48,3 @@ class ConnectionHandler:
             conn.close()
             del self.server.clients[client_id]
             self.server.add_log(f"Client disconnected: {client_id}")
-            print(f"Client {client_id} déconnecté")

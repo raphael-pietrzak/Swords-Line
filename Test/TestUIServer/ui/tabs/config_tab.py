@@ -4,14 +4,14 @@ from ui.components import Button
 
 
 class ConfigTab:
-    def __init__(self, ui_context, server_data):
+    def __init__(self, ui_context, server):
         self.width = ui_context.width
         self.height = ui_context.height
         self.font_normal = ui_context.font_normal
         self.font_small = ui_context.font_small
 
         # Données du serveur
-        self.server_data = server_data
+        self.server = server
         
         # Paramètres de configuration
         self.config = {

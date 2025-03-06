@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from ui.components import Button
 class RoomsTab:
-    def __init__(self, ui_context, server_data):
+    def __init__(self, ui_context, room_manager):
         self.width = ui_context.width
         self.height = ui_context.height
         self.font_normal = ui_context.font_normal
@@ -10,15 +10,15 @@ class RoomsTab:
         self.font_title = ui_context.font_title
 
         # Données du serveur
-        self.server_data = server_data
-        
+        self.room_manager = room_manager
+
         # Boutons spécifiques à cet onglet
         self.buttons = [
             Button(pygame.Rect(self.width - 250, 60, 200, 40), "Nouvelle Room", self.create_room)
         ]
         
         # État interne
-        self.rooms = {}  # Référence aux rooms du serveur
+        self.rooms = self.room_manager.rooms
         self.selected_room = None
         self.viewing_room_details = False
         
@@ -33,7 +33,7 @@ class RoomsTab:
         ]
     
     def create_room(self):
-        self.server_data.create_room()
+        self.room_manager.create_room()
     
     def view_room(self, room):
         self.selected_room = room
@@ -52,7 +52,7 @@ class RoomsTab:
         if self.selected_room:
             print(f"Room supprimée: {self.selected_room.name}")
             self.viewing_room_details = False
-            self.server_data.delete_room(self.selected_room.id)
+            self.room_manager.remove_room(self.selected_room.id)
             self.selected_room = None
     
     def expel_player(self, player):
@@ -60,7 +60,7 @@ class RoomsTab:
             print(f"Joueur {player.name} expulsé de la room {self.selected_room.name}")
     
     def update(self):
-        self.rooms = self.server_data.rooms
+        self.rooms = self.room_manager.rooms
         
         # Mettre à jour l'état des boutons
         for button in self.buttons:
@@ -87,7 +87,7 @@ class RoomsTab:
             delete_btn = Button(
                 pygame.Rect(self.width - 230, y_pos + 10, 150, 40), 
                 "Supprimer", 
-                lambda r=room: self.server_data.delete_room(r.id),
+                lambda r=room: self.room_manager.remove_room(r.id),
                 color=ERROR_COLOR
             )
             

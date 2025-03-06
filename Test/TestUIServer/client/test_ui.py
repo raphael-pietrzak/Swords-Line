@@ -1,5 +1,5 @@
 import pygame
-from client_simulation import ClientMessageSender
+from main import ClientMessageSender
 
 class Button:
     def __init__(self, x, y, width, height, text, color):

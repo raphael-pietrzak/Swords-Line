@@ -2,10 +2,22 @@ import pygame
 from ui.tabs import DashboardTab, RoomsTab, LogsTab, ConfigTab
 from ui.components import TabButton, UIContext
 from settings import *
-from network.network_handler import NetworkServer
 
 class TabbedServerUI:
-    def __init__(self, server_data):
+    def __init__(self, server):
+        self.server = server
+
+        # Données du serveur
+        self.rooms = server.room_manager.rooms
+        self.players = server.player_manager.players
+        self.log_manager = server.log_manager
+
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Swords Line - Serveur")
+        self.clock = pygame.time.Clock()
+        self.running = True
+
+
         # Création des onglets
         self.tabs = [
             {"value": Tab.DASHBOARD, "text": "Dashboard", "active": True},
@@ -23,26 +35,21 @@ class TabbedServerUI:
             tab_button = TabButton(tab_rect, tab["text"], tab["value"], tab["active"])
             self.tab_buttons.append(tab_button)
 
-        self.server_data = server_data
         self.ui_context = UIContext(WIDTH, HEIGHT)
 
         # Onglet actif
         self.active_tab = Tab.DASHBOARD
 
-        
         # Contenu des onglets
-        self.dashboard_tab = DashboardTab(self.ui_context, self.server_data)
-        self.rooms_tab = RoomsTab(self.ui_context, self.server_data)
-        self.logs_tab = LogsTab(self.ui_context, self.server_data)
-        self.config_tab = ConfigTab(self.ui_context, self.server_data)
+        self.dashboard_tab = DashboardTab(self.ui_context, self.server)
+        self.rooms_tab = RoomsTab(self.ui_context, self.server.room_manager)
+        self.logs_tab = LogsTab(self.ui_context, self.log_manager)
+        self.config_tab = ConfigTab(self.ui_context, self.server)
         
         # Ajouter quelques logs de démonstration
-        self.server_data.add_log("Serveur initialisé", "INFO")
-        self.server_data.add_log("En attente de démarrage...", "INFO")
+        self.log_manager.add_log("Serveur initialisé", "INFO")
+        self.log_manager.add_log("En attente de démarrage...", "INFO")
 
-        # Network
-        self.server_network = NetworkServer(self.server_data)
-        self.server_network.start()
     
     def switch_tab(self, tab):
         if self.active_tab != tab:
