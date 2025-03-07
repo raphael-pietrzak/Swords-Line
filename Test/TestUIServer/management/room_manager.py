@@ -35,9 +35,7 @@ class RoomManager:
         current_time = time.time()
         for room_id in list(self.rooms.keys()):
             room = self.rooms[room_id]
-            if (len(room.players) == 0 or 
-                (room.game_state == GameState.FINISHED and 
-                 room.finished_at + cleanup_delay < current_time)):
+            if room.game_state == GameState.FINISHED and room.finished_at + cleanup_delay < current_time:
                 self.remove_room(room_id)
 
     def update_rooms(self):

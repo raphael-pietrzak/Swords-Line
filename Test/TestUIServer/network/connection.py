@@ -47,4 +47,7 @@ class ConnectionHandler:
         if client_id in self.server.clients:
             conn.close()
             del self.server.clients[client_id]
+            print(self.server.clients)
+            self.server.player_manager.remove_player(client_id)
+            print(self.server.player_manager.players)
             self.server.add_log(f"Client disconnected: {client_id}")

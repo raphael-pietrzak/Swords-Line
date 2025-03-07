@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from ui.components import Button
 class RoomsTab:
-    def __init__(self, ui_context, room_manager):
+    def __init__(self, ui_context, server):
         self.width = ui_context.width
         self.height = ui_context.height
         self.font_normal = ui_context.font_normal
@@ -10,7 +10,8 @@ class RoomsTab:
         self.font_title = ui_context.font_title
 
         # Données du serveur
-        self.room_manager = room_manager
+        self.server = server
+        self.room_manager = server.room_manager
 
         # Boutons spécifiques à cet onglet
         self.buttons = [
@@ -46,6 +47,12 @@ class RoomsTab:
     
     def message_room(self):
         if self.selected_room:
+            self.server.broadcast_to_room(self.selected_room.id, "CHAT_MESSAGE",
+                {
+                    "author": "Serveur",
+                    "message": "Bonjour à toute la room!"
+                }
+            )
             print(f"Message envoyé à la room: {self.selected_room.name}")
     
     def delete_room(self):

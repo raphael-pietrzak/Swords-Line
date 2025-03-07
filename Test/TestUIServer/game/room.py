@@ -18,7 +18,8 @@ class Room:
 
         
     def add_player(self, player):
-        if len(self.players) < self.max_players:
+        if len(self.players) < self.max_players and player not in self.players:
+            player.room = self
             self.players.append(player)
             return True
         return False

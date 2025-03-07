@@ -1,132 +1,114 @@
-import socket
-import json
-import time
+import pygame
+from client import ClientMessageSender
 
-class ClientMessageSender:
-    def __init__(self, host='localhost', port=5555):
-        self.host = host
-        self.port = port
-        self.client_id = None
-        self.room_id = None
-        self.socket = None
-        self.message_handler = MessageHandler(self)
-    
-    def connect(self):
-        """Établit la connexion au serveur"""
-        try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.connect((self.host, self.port))
-            print(f"Connecté au serveur {self.host}:{self.port}")
-            return True
-        except Exception as e:
-            print(f"Erreur de connexion: {e}")
-            return False
-    
-    def disconnect(self):
-        """Ferme la connexion au serveur"""
-        if self.socket:
-            self.socket.close()
-            print("Déconnecté du serveur")
-    
-    def set_client_id(self, client_id):
-        """Définit l'ID client pour les messages"""
-        self.client_id = client_id
-        print(f"ID client défini: {client_id}")
-    
-    def set_room_id(self, room_id):
-        """Définit l'ID de la room pour les messages"""
-        self.room_id = room_id
-        print(f"ID room défini: {room_id}")
-    
-    def send_message(self, message_type, data):
-        """Envoie un message formaté au serveur"""
-        if not self.socket:
-            print("Erreur: Non connecté au serveur")
-            return False
-        
-        try:
-            message = {
-                "client_id": self.client_id,
-                "room_id": self.room_id,
-                "type": message_type,
-                "data": data,
-                "timestamp": time.time()
-            }
-            
-            message_json = json.dumps(message)
-            self.socket.sendall(message_json.encode('utf-8') + b'\n')
-            
-            # Gestion asynchrone de la réponse pour éviter le blocage de l'interface
-            self.socket.setblocking(False)
-            try:
-                response = self.socket.recv(4096).decode('utf-8')
-                if response:
-                    response = json.loads(response)
-                    self.message_handler.handle_message(self.client_id, None, response)
-            except:
-                pass
-            finally:
-                self.socket.setblocking(True)
-            
-            return True
-        except Exception as e:
-            print(f"Erreur d'envoi: {e}")
-            return False
-        
-class MessageHandler:
-    def __init__(self, server):
-        self.server = server
-    
-    def handle_message(self, client_id, player, message):
-        """Traite un message reçu du serveur"""
-        message_type = message["type"]
-        data = message["data"]
-        
-        if message_type == "CONNECTED":
-            print(f"Connecté en tant que {data['name']}")
-        elif message_type == "ROOM_CREATED":
-            print(f"Room créée: {data['room_name']}")
-            self.server.set_room_id(data['room_id'])
-        elif message_type == "JOINED_ROOM":
-            print(f"Rejoins la room {data['room_id']}")
-        elif message_type == "ERROR":
-            print(f"Erreur: {data['message']}")
-        elif message_type == "PLAYER_JOINED":
-            print(f"Joueur rejoint: {data['name']}")
-        elif message_type == "PLAYER_LEFT":
-            print(f"Joueur parti: {data['player_id']}")
-        else:
-            print(f"Message inconnu: {message}")
+class Button:
+    def __init__(self, x, y, width, height, text, color):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.color = color
+        self.font = pygame.font.Font(None, 32)
 
-def move_player_in_loop(client):
-    client.send_message("MOVE", {"direction": "UP"})
-    time.sleep(1)
-    client.send_message("MOVE", {"direction": "DOWN"})
-    time.sleep(1)
-    client.send_message("MOVE", {"direction": "LEFT"})
-    time.sleep(1)
-    client.send_message("MOVE", {"direction": "RIGHT"})
-    time.sleep(1)
-    for i in range(100):
-        client.send_message("MOVE", {"direction": "DOWN"})
-        time.sleep(0.1)
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        text_surface = self.font.render(self.text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
 
-# Exemples d'utilisation
+    def is_clicked(self, pos):
+        return self.rect.collidepoint(pos)
+
+class TextInput:
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = ""
+        self.active = False
+        self.font = pygame.font.Font(None, 32)
+        self.color_inactive = pygame.Color('grey')
+        self.color_active = pygame.Color('white')
+        self.color = self.color_inactive
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.active = self.rect.collidepoint(event.pos)
+            self.color = self.color_active if self.active else self.color_inactive
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    return self.text
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+        return None
+
+    def draw(self, screen):
+        txt_surface = self.font.render(self.text, True, self.color)
+        width = max(200, txt_surface.get_width()+10)
+        self.rect.w = width
+        screen.blit(txt_surface, (self.rect.x+5, self.rect.y+5))
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
+class TestUI:
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((800, 600))
+        pygame.display.set_caption("Test Network Client")
+        self.client = ClientMessageSender()
+        self.setup_buttons()
+        self.room_input = TextInput(260, 200, 200, 40)
+        self.running = True
+
+    def setup_buttons(self):
+        self.buttons = [
+            Button(50, 50, 200, 40, "Connect", (0, 100, 200)),
+            Button(50, 150, 200, 40, "Create Room", (150, 0, 0)),
+            Button(50, 200, 200, 40, "Join Room", (100, 100, 0)),
+            Button(50, 250, 200, 40, "Move Up", (100, 0, 100)),
+            Button(50, 300, 200, 40, "Move Down", (100, 0, 100)),
+            Button(50, 350, 200, 40, "Move Left", (100, 0, 100)),
+            Button(50, 400, 200, 40, "Move Right", (100, 0, 100))
+        ]
+
+    def handle_click(self, button):
+        if button.text == "Connect":
+            self.client.connect()
+            self.client.set_client_id("player123")
+        elif button.text == "Create Room":
+            self.client.send_message("CREATE_ROOM", {"room_name": "TestRoom", "max_players": 4})
+        elif button.text == "Join Room":
+            room_id = self.room_input.text
+            if room_id:
+                self.client.send_message("JOIN_ROOM", {"room_id": room_id})
+        elif button.text == "Move Up":
+            self.client.send_message("GAME_ACTION", {"action": "MOVE", "direction": "UP"})
+        elif button.text == "Move Down":
+            self.client.send_message("GAME_ACTION", {"action": "MOVE", "direction": "DOWN"})
+        elif button.text == "Move Left":
+            self.client.send_message("GAME_ACTION", {"action": "MOVE", "direction": "LEFT"})
+        elif button.text == "Move Right":
+            self.client.send_message("GAME_ACTION", {"action": "MOVE", "direction": "RIGHT"})
+
+    def run(self):
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    for button in self.buttons:
+                        if button.is_clicked(event.pos):
+                            self.handle_click(button)
+                self.room_input.handle_event(event)
+
+            self.screen.fill((50, 50, 50))
+            for button in self.buttons:
+                button.draw(self.screen)
+            self.room_input.draw(self.screen)
+            pygame.display.flip()
+
+        pygame.quit()
+        if self.client.socket:
+            self.client.disconnect()
+
 if __name__ == "__main__":
-    client = ClientMessageSender()
-    
-    if client.connect():
-
-        # Simulation d'une session
-        client.set_client_id("player123")
-        print("JOIN")
-        client.send_message("JOIN", {"name": "Raphael"})
-        input()
-        print("CREATE_ROOM")
-        client.send_message("CREATE_ROOM", {"room_name": "Ma Room", "max_players": 4})
-        input()
-        print("JOIN_ROOM")
-        print(client.room_id)
-        client.send_message("JOIN_ROOM", {"room_id": client.room_id})
-        
-        move_player_in_loop(client)
+    ui = TestUI()
+    ui.run()

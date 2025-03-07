@@ -42,7 +42,7 @@ class TabbedServerUI:
 
         # Contenu des onglets
         self.dashboard_tab = DashboardTab(self.ui_context, self.server)
-        self.rooms_tab = RoomsTab(self.ui_context, self.server.room_manager)
+        self.rooms_tab = RoomsTab(self.ui_context, self.server)
         self.logs_tab = LogsTab(self.ui_context, self.log_manager)
         self.config_tab = ConfigTab(self.ui_context, self.server)
         

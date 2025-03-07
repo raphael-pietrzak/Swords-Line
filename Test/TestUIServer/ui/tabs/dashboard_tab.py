@@ -60,7 +60,15 @@ class DashboardTab:
     
     def broadcast_message(self):
         if self.server_running:
-            print("Message global envoyé")
+            self.server.broadcast_message({
+                "type": "CHAT_MESSAGE",
+                "data": {
+                    "author": "Serveur",
+                    "message": "Ceci est un message global!"
+                }
+            })
+            self.stats['messages_sent'] += 1
+            self.server.add_log("Message global envoyé")
     
     def update(self):
         # Mettre à jour les statistiques à partir des données du serveur

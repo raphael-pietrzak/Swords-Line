@@ -109,6 +109,22 @@ class GameServer:
             for player in room.players:
                 if exclude is None or player.id != exclude:
                     self.send_to_client(player.id, message)
+    
+    def broadcast_message(self, message):
+        for client_id, _ in self.clients.items():
+            self.send_to_client(client_id, message)
+
+    def send_to_client(self, client_id, message):
+        conn, _ = self.clients.get(client_id)
+        if conn:
+            try:
+                message_json = json.dumps(message)
+                conn.sendall(message_json.encode('utf-8') + b'\n')
+                self.log_manager.add_log(f"Message envoyé à {client_id}: {message}")
+            except Exception as e:
+                self.log_manager.add_log(f"Erreur d'envoi à {client_id}: {e}")
+        else:
+            self.log_manager.add_log(f"Client inconnu: {client_id}")
 
     def add_log(self, message):
         self.log_manager.add_log(message)

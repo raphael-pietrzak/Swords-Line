@@ -17,7 +17,11 @@ class PlayerManager:
         return self.players.get(player_id)
     
     def remove_player(self, player_id):
+        print(f"Removing player: {player_id}")
         if player_id in self.players:
+            player = self.players[player_id]
+            if player.room:
+                player.room.remove_player(player_id)
             del self.players[player_id]
             self.log_manager.add_log(f"Player removed: {player_id}")
     

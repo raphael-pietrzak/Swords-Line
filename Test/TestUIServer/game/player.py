@@ -7,7 +7,7 @@ class Player:
         self.name = name
         self.character_type = character_type
         self.position = (random.randint(50, 350), random.randint(50, 250))
-        self.room_id = None
+        self.room = None
         self.connected_at = time.time()
         self.level = random.randint(1, 10)
     
@@ -33,7 +33,7 @@ class Player:
             'name': self.name,
             'character_type': self.character_type,
             'position': self.position,
-            'room_id': self.room_id,
+            'room_id': self.room.id,
             'connected_at': self.connected_at,
             'level': self.level
         }
