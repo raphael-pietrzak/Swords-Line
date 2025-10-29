@@ -13,7 +13,8 @@ class MessageHandler:
             "JOIN_ROOM": self._handle_join_room,
             "START_GAME": self._handle_start_game,
             "GAME_ACTION": self._handle_game_action,
-            "CHAT_MESSAGE": self._handle_chat_message
+            "CHAT_MESSAGE": self._handle_chat_message,
+            "PLAY1V1": self._handle_play1v1
         }
         
         handler = handlers.get(message.get("type"))
@@ -31,6 +32,11 @@ class MessageHandler:
         self.server.add_log(f"Room created by {player.name}: {room.name} ({room.id})")
 
     def _handle_join_room(self, client_id, player, message):
+        if player.room:
+            self.server.send_message(client_id, "ERROR", {
+                "message": "Vous êtes déjà dans une room"
+            })
+            return
         room_id = message.get("room_id")
         room = self.server.room_manager.get_room(room_id)
         if room and room.add_player(player):
@@ -49,8 +55,8 @@ class MessageHandler:
             self.server.add_log(f"Player {player.name} failed to join room {room_id}")
 
     def _handle_start_game(self, client_id, player, message):
-        room_id = message.get("room_id")
-        room = self.server.room_manager.get_room(room_id)
+        room = player.room
+        room_id = room.id
         if room:
             self.server.broadcast_to_room(room_id, "GAME_STARTED", {
                 "game_info": {
@@ -62,17 +68,17 @@ class MessageHandler:
             self.server.add_log(f"Game started in room {room_id}")
 
     def _handle_game_action(self, client_id, player, message):
-        room_id = message.get("room_id")
+        self.server.add_log(message)
         action = message.get("action")
-        room = self.server.room_manager.get_room(room_id)
+        room = player.room
         if room:
-            if room.handle_player_action(client_id, action):
-                self.server.broadcast_to_room(room_id, "GAME_UPDATE", {
+            if room.handle_player_action(player, message):
+                self.server.broadcast_to_room(room.id, "GAME_UPDATE", {
                     "player_id": client_id,
                     "action": action,
                     "game_state": room.game_logic.get_game_state()
                 })
-                self.server.add_log(f"Game action from {player.name} in room {room_id}: {action}")
+                self.server.add_log(f"Game action from {player.name} in room {room.id}: {action}")
 
     def _handle_chat_message(self, client_id, player, message):
         room_id = message.get("room_id")
@@ -88,3 +94,22 @@ class MessageHandler:
                     "timestamp": time.time()
                 })
                 self.server.add_log(f"Chat message from {player.name} in room {room_id}: {text}")
+
+
+    def _handle_play1v1(self, client_id, player, message):
+        if player.room:
+            self.server.send_message(client_id, "ERROR", {
+                "message": "Vous êtes déjà dans une room"
+            })
+            return
+        room = self.server.room_manager.find_random()
+        room.add_player(player)
+        self.server.send_message(client_id, "JOINED_ROOM", {
+            "room_id": room.id,
+            "room_info": room.get_status()
+        })
+        self.server.broadcast_to_room(room.id, "PLAYER_JOINED", {
+            "player": player.get_info()
+        }, exclude=client_id)
+        self.server.add_log(f"Player {player.name} joined room {room.id}")
+

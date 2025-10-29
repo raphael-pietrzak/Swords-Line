@@ -48,19 +48,77 @@ class TextInput:
         screen.blit(txt_surface, (self.rect.x+5, self.rect.y+5))
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
+class StatusIndicator:
+    def __init__(self, x, y, label):
+        self.x = x
+        self.y = y
+        self.radius = 10
+        self.label = label
+        self.status = False
+        self.font = pygame.font.Font(None, 24)
+
+    def draw(self, screen):
+        color = (0, 255, 0) if self.status else (255, 0, 0)
+        pygame.draw.circle(screen, color, (self.x, self.y), self.radius)
+        text = self.font.render(self.label, True, (255, 255, 255))
+        screen.blit(text, (self.x + 20, self.y - 10))
+
+class MessageDisplay:
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.messages = []
+        self.font = pygame.font.Font(None, 24)
+        self.max_messages = 10
+
+    def add_message(self, message):
+        self.messages.append(message)
+        if len(self.messages) > self.max_messages:
+            self.messages.pop(0)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, (30, 30, 30), self.rect)
+        pygame.draw.rect(screen, (100, 100, 100), self.rect, 2)
+        y_offset = 10
+        for message in self.messages:
+            text = self.font.render(message, True, (255, 255, 255))
+            screen.blit(text, (self.rect.x + 10, self.rect.y + y_offset))
+            y_offset += 25
+
 class TestUI:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Test Network Client")
         self.client = ClientMessageSender()
+        self.client.message_callback = self.on_message_received
         self.setup_buttons()
         self.room_input = TextInput(260, 200, 200, 40)
         self.running = True
+        
+        # Ajout des indicateurs
+        self.connection_status = StatusIndicator(650, 30, "Connection")
+        self.room_status = StatusIndicator(650, 60, "Room")
+        self.message_display = MessageDisplay(300, 300, 450, 250)
+        self.client.connect()
+
+    def on_message_received(self, message):
+        if message["type"] == "CONNECTED":
+            self.connection_status.status = True
+            self.client.set_client_id(message["data"]["client_id"])
+        elif message["type"] == "JOINED_ROOM":
+            self.room_status.status = True
+        elif message["type"] == "DISCONNECTED":
+            self.connection_status.status = False
+        elif message["type"] == "LEFT_ROOM":
+            self.room_status.status = False
+            
+        # Afficher le message dans la zone de messages
+        self.message_display.add_message(f"{message['type']}: {str(message['data'])}")
 
     def setup_buttons(self):
         self.buttons = [
             Button(50, 50, 200, 40, "Connect", (0, 100, 200)),
+            Button(50, 100, 200, 40, "Play", (0, 150, 0)),
             Button(50, 150, 200, 40, "Create Room", (150, 0, 0)),
             Button(50, 200, 200, 40, "Join Room", (100, 100, 0)),
             Button(50, 250, 200, 40, "Move Up", (100, 0, 100)),
@@ -72,7 +130,8 @@ class TestUI:
     def handle_click(self, button):
         if button.text == "Connect":
             self.client.connect()
-            self.client.set_client_id("player123")
+        elif button.text == "Play":
+            self.client.send_message("PLAY1V1", {})
         elif button.text == "Create Room":
             self.client.send_message("CREATE_ROOM", {"room_name": "TestRoom", "max_players": 4})
         elif button.text == "Join Room":
@@ -103,6 +162,12 @@ class TestUI:
             for button in self.buttons:
                 button.draw(self.screen)
             self.room_input.draw(self.screen)
+            
+            # Dessiner les indicateurs et la zone de messages
+            self.connection_status.draw(self.screen)
+            self.room_status.draw(self.screen)
+            self.message_display.draw(self.screen)
+            
             pygame.display.flip()
 
         pygame.quit()

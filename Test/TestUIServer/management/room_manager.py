@@ -8,6 +8,7 @@ class RoomManager:
     def __init__(self, log_manager):
         self.log_manager = log_manager
         self.rooms = {}
+        self.random_players_rooms = {}
         self.next_room_id = 1
 
     def add_room(self, room):
@@ -21,7 +22,14 @@ class RoomManager:
         self.next_room_id += 1
         self.log_manager.add_log(f"Room created: {room_name} ({room.id})")
         return room
-
+    
+    def find_random(self, max_players=2):
+        for room in self.rooms.values():
+            if room.game_state == GameState.WAITING and len(room.players) < room.max_players:
+                return room
+        room = self.create_room(max_players=max_players)
+        return room
+        
     def get_room(self, room_id):
         return self.rooms.get(room_id)
 

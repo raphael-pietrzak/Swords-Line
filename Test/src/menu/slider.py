@@ -1,7 +1,7 @@
-
 import pygame
 from src.menu.screens import MainMenu, OptionsMenu
 from src.menu.screens.collection.main import CollectionMenu
+from src.menu.screens.selection import SelectionMenu
 
 class MenuSlider:
     def __init__(self, screen_width, screen_height):
@@ -20,7 +20,8 @@ class MenuSlider:
         self.screens = [
             MainMenu(screen_width, screen_height - 50),  # -50 pour la navbar
             OptionsMenu(screen_width, screen_height - 50),
-            CollectionMenu(screen_width, screen_height - 50)
+            CollectionMenu(screen_width, screen_height - 50),
+            SelectionMenu(screen_width, screen_height - 50)  # Ajout du nouvel écran
         ]
         
         self.current_page = 0

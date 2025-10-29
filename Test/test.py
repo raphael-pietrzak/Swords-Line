@@ -10,7 +10,7 @@ class AnimatedClickable:
         # États d'animation
         self.is_animating = False
         self.animation_time = 0
-        self.animation_duration = 0.4  # Durée totale de l'animation en secondes
+        self.animation_duration = 0.2  # Durée totale de l'animation en secondes
         
         # Échelles pour chaque phase
         self.scales = {

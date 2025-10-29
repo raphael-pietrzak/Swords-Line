@@ -1,4 +1,5 @@
 from settings import GameState
+from game.game_logic import GameLogic
 import time
 import random
 import uuid
@@ -10,7 +11,7 @@ class Room:
         self.max_players = max_players
         self.players = []
         self.game_state = GameState.WAITING  # Enum: WAITING, STARTING, PLAYING, FINISHED
-        # self.game_logic = GameLogic(self)
+        self.game_logic = GameLogic(self)
         self.chat_messages = []
         self.created_at = time.time()
         self.started_at = None
@@ -27,6 +28,7 @@ class Room:
     def remove_player(self, player_id):
         for i, player in enumerate(self.players):
             if player.id == player_id:
+                player.room = None
                 self.players.pop(i)
                 return True
         return False
@@ -35,7 +37,7 @@ class Room:
         if len(self.players) >= 2 and self.game_state == GameState.WAITING:
             self.game_state = GameState.STARTING
             self.started_at = time.time()
-            # self.game_logic.initialize_game()
+            self.game_logic.initialize_game()
             self.game_state = GameState.PLAYING
             return True
         return False
@@ -50,20 +52,15 @@ class Room:
     
     def process_turn(self):
         if self.game_state == GameState.PLAYING:
-            # game_over = self.game_logic.process_turn()
+            game_over = self.game_logic.process_turn()
             game_over = False
             if game_over:
                 self.end_game()
     
-    def handle_player_action(self, player_id, data):
-        # if self.game_state == GameState.PLAYING:
+    def handle_player_action(self, player, data):
         direction = data.get('direction')
-        player = self.get_player_by_id(player_id)
-        if player:
-            player.move(direction)
-            return True
-            
-        return False
+        player.move(direction)
+        
     
     def add_chat_message(self, player_id, message):
         player = self.get_player_by_id(player_id)

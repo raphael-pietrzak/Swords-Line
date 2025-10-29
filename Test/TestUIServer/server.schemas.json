@@ -31,8 +31,12 @@
     "CHAT_MESSAGE": {
       "type": "CHAT_MESSAGE",
       "data": {
-        "room_id": "string",
-        "text": "string"
+        "message": "string"
+      }
+    },
+    "PLAY1V1": {
+      "type": "PLAY1V1",
+      "data": {
       }
     }
   },
@@ -86,10 +90,8 @@
     "CHAT_MESSAGE": {
       "type": "CHAT_MESSAGE",
       "data": {
-        "player_id": "string",
-        "player_name": "string",
-        "text": "string",
-        "timestamp": "number"
+        "author": "string",
+        "message": "string"
       }
     },
     "ERROR": {

@@ -6,11 +6,11 @@ class AnimationMixin:
         self.original_pos = (self.rect.centerx, self.rect.centery)
         self.is_animating = False
         self.animation_time = 0
-        self.animation_duration = 0.4
+        self.animation_duration = 0.2
         self.scales = {
             'normal': 1.0,
             'compress': 0.8,
-            'expand': 1.1
+            'expand': 1.2
         }
 
     def update_animation(self, dt):
