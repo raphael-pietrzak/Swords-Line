@@ -1,0 +1,104 @@
+{
+  "incoming": {
+    "CREATE_ROOM": {
+      "type": "CREATE_ROOM",
+      "data": {
+        "room_name": "string"
+      }
+    },
+    "JOIN_ROOM": {
+      "type": "JOIN_ROOM",
+      "data": {
+        "room_id": "string"
+      }
+    },
+    "START_GAME": {
+      "type": "START_GAME",
+      "data": {
+        "room_id": "string"
+      }
+    },
+    "GAME_ACTION": {
+      "type": "GAME_ACTION",
+      "data": {
+        "room_id": "string",
+        "action": {
+          "type": "string",
+          "payload": "object"
+        }
+      }
+    },
+    "CHAT_MESSAGE": {
+      "type": "CHAT_MESSAGE",
+      "data": {
+        "message": "string"
+      }
+    },
+    "PLAY1V1": {
+      "type": "PLAY1V1",
+      "data": {
+      }
+    }
+  },
+  "outgoing": {
+    "ROOM_CREATED": {
+      "type": "ROOM_CREATED",
+      "data": {
+        "room_id": "string",
+        "room_name": "string"
+      }
+    },
+    "JOINED_ROOM": {
+      "type": "JOINED_ROOM",
+      "data": {
+        "room_id": "string",
+        "room_info": {
+          "name": "string",
+          "players": "array",
+          "status": "string"
+        }
+      }
+    },
+    "PLAYER_JOINED": {
+      "type": "PLAYER_JOINED",
+      "data": {
+        "player": {
+          "id": "string",
+          "name": "string",
+          "is_ready": "boolean"
+        }
+      }
+    },
+    "GAME_STARTED": {
+      "type": "GAME_STARTED",
+      "data": {
+        "game_info": {
+          "players": "array",
+          "current_turn": "number",
+          "current_player": "string"
+        }
+      }
+    },
+    "GAME_UPDATE": {
+      "type": "GAME_UPDATE",
+      "data": {
+        "player_id": "string",
+        "action": "object",
+        "game_state": "object"
+      }
+    },
+    "CHAT_MESSAGE": {
+      "type": "CHAT_MESSAGE",
+      "data": {
+        "author": "string",
+        "message": "string"
+      }
+    },
+    "ERROR": {
+      "type": "ERROR",
+      "data": {
+        "message": "string"
+      }
+    }
+  }
+}

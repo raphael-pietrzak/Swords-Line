@@ -1,0 +1,19 @@
+server/
+├── network/
+│   ├── network_handler.py       # Gère toutes les connexions (renommé depuis ServerNetwork)
+│   ├── connection_handler.py    # Gère une connexion client individuelle
+│   └── message_processor.py     # Traite les différents types de messages
+├── game/
+│   ├── room.py                  # Définit la Room et ses fonctionnalités
+│   ├── game_logic.py            # Logique de jeu spécifique à une room
+│   └── player.py                # Représentation d'un joueur
+├── management/
+│   ├── room_manager.py          # Gère la création/suppression des rooms
+│   ├── player_manager.py        # Gère les joueurs connectés
+│   └── log_manager.py           # Système centralisé de logs
+├── ui/
+│   ├── admin_panel.py           # Interface d'administration
+│   ├── room_tab.py              # Onglet d'affichage/gestion des rooms
+│   ├── player_tab.py            # Onglet d'affichage/gestion des joueurs
+│   └── log_tab.py               # Onglet d'affichage des logs
+└── server.py                    # Point d'entrée principal qui initialise tout

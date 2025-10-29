@@ -1,0 +1,26 @@
+{
+    "name": "Python Client-Server Dev",
+    "build": {
+      "dockerfile": "Dockerfile",
+      "context": ".."
+    },
+    "postCreateCommand": "pip install -r requirements.txt",
+    "forwardPorts": [5000, 8000],
+    "remoteUser": "vscode",
+    "features": {
+      "ghcr.io/devcontainers/features/python:1": {
+        "version": "3.11"
+      }
+    },
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "terminal.integrated.shell.linux": "/bin/bash",
+          "python.defaultInterpreterPath": "/usr/local/bin/python"
+        },
+        "extensions": [
+          "ms-python.python",
+          "ms-python.vscode-pylance"
+        ]
+      }
+    }
